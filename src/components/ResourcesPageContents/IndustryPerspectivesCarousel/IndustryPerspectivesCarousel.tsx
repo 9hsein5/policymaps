@@ -159,8 +159,8 @@ const IndustryPerspectivesCarousel:React.FC<Props> = ({
                 className='grid-container'
             >
                 <div className="column-12 center-column text-center trailer-2">
-                    <h3 className="trailer-1">Community Perspectives</h3>
-                    <p className="leader-half avenir-light font-size--1">Discover insights and approaches from today’s thought leaders.</p>
+                    <h3 className="trailer-1">Frontline Voices</h3>
+                    <p className="leader-half avenir-light font-size--1">Hear directly from our volunteers and affected community members about their experiences, challenges, and successes in delivering humanitarian aid across Lebanon.</p>
                 </div>
 
                 <div className="column-14 center-column">

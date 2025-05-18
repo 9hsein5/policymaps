@@ -32,10 +32,10 @@ const HeroBanner:React.FC<Props> = ({
         // const descriptionData = CategoryDescriptions
         //     .filter(data=>data.title === activeMainCategoryTitle)[0];
 
-        const title = `How do you view your community?`
+        const title = `How can you explore your community’s needs?`
 
         const description = `
-        The categories below contain some of the more useful maps, layers and data about your community. It starts with understanding the people in your community, their opportunities, local environment and resources, and the infrastructure available. Browse what's available below to see what other communities are doing, what data exists for a topic and share what you find with your colleagues and your GIS community.
+        Our curated categories showcase the most impactful maps, layers, and datasets for Lebanese communities. Begin by discovering who lives in your area, where resources and risks lie, and how infrastructure and services are distributed. Then, see how other communities are leveraging data—compare local insights, identify gaps, and share your findings with colleagues, partners, and the wider humanitarian GIS network.
         `
 
         return (

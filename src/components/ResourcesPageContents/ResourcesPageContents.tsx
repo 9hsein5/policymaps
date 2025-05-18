@@ -124,22 +124,22 @@ const ResourcesPageContents:React.FC = ()=>{
             <InfoCardsGroup 
                 title={'Start here'}
                 greyBackground={true}
-                description={'Learn how to find and share ready-to-use policy maps about your community.'}
+                description={'Learn how to navigate the LRC Policy Maps portal and share lifesaving insights about your communities.'}
                 featuredCard={gettingStartedSectionData ? gettingStartedSectionData.featured : null}
                 cardsData={gettingStartedSectionData ? gettingStartedSectionData.cardsData : []}
             />
 
             <InfoCardsGroup 
                 title={'Get inspired'}
-                description={'Find examples from others to kickstart your own policy maps.'}
+                description={'See how our volunteers and partners have used maps to plan, coordinate, and evaluate humanitarian actions across Lebanon.'}
                 featuredCard={bestPracticeSectionData ? bestPracticeSectionData.featured : null}
                 cardsData={bestPracticeSectionData ? bestPracticeSectionData.cardsData : []}
             />
 
             <InfoCardsGroup 
-                title={'Apply a policy perspective'}
+                title={'Plan Your Response'}
                 greyBackground={true}
-                description={'Create your own maps that show opportunities to intervene.'}
+                description={'Build your own maps to pinpoint needs, target interventions, and track progress toward humanitarian goals.'}
                 featuredCard={learnLessonsSectionData ? learnLessonsSectionData.featured : null}
                 cardsData={learnLessonsSectionData ? learnLessonsSectionData.cardsData : []}
             />

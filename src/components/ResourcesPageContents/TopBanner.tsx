@@ -62,7 +62,7 @@ const TopBanner:React.FC = ()=>{
                             'margin': '0 auto 10px'
                         }}
                     ></div>
-                    <p className="leader-2">To maximize your experience with Policy Maps, we’ve assembled education, training, best practices, and industry perspectives that help raise your data literacy, provide you with models, and connect you with the work of your peers.</p>
+                    <p className="leader-2">To fully leverage our mapping platform, the Lebanese Red Cross has curated a suite of learning resources—including tutorials, field-tested best practices, and real-world case studies—that build your data skills, offer reusable map templates, and connect you with fellow practitioners driving humanitarian action across Lebanon.</p>
                 </div>
             </div>
         </div>
