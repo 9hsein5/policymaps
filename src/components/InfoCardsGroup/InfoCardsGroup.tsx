@@ -90,7 +90,20 @@ const InfoCardsGroup:React.FC<Props> = ({
 
                 <FearuredCardContent>
                     <p className="font-size-2 trailer-half">
-                        <a target="_blank" href={url}>{title}</a>
+                        <a href={url} 
+                            target="_blank"
+                            rel="noopener"
+                            style={
+                                {
+                                    color: '#D52B1E',
+                                    textDecoration: 'none',
+                                }
+                            }
+                            onMouseEnter={e => (e.currentTarget.style.color = '#A31A13')}
+                            onMouseLeave={e => (e.currentTarget.style.color = '#D52B1E')}
+                            >
+                                {title}
+                        </a>
                     </p>
 
                     <p className="font-size--1">

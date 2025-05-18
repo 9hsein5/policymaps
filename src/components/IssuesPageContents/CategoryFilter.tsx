@@ -45,7 +45,7 @@ const CategoryFilter:React.FC<Props> = ({
             'cursor': 'pointer',
         } as React.CSSProperties;
 
-        const borderLeftForActiveOption = '5px solid #0079c1';
+        const borderLeftForActiveOption = '5px solid #D52B1E';
         const borderLeftForDefaultOption = '5px solid #fff';
 
         const options = activeCategory.categories.map((subcategory, index)=>{

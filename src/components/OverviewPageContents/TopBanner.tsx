@@ -24,7 +24,7 @@ const TopBanner:React.FC = ()=>{
                         'backgroundColor': 'rgba(0, 0, 0, 0.7)'
                     }}
                 >
-                    <h1 className="sub-nav-title trailer-1">Maps for Data-Driven Policy</h1>
+                    <h1 className="sub-nav-title trailer-1">Maps that Power Life-Saving Decisions</h1>
 
                     <div
                         style={{
@@ -35,10 +35,9 @@ const TopBanner:React.FC = ()=>{
                         }}
                     ></div>
 
-                    <h5 className='trailer-1'>Policy maps clearly show where there are opportunities to intervene.</h5>
+                    <h5 className='trailer-1'>Humanitarian maps reveal where help is most needed.</h5>
 
-                    <h5 className="avenir-light">This site is dedicated to raising the level of spatial and data literacy used in public policy. We invite you to explore curated content, training, best practices, and datasets that can provide a baseline for your research, analysis, and policy recommendations.</h5>
-
+                    <h5 className="avenir-light">Explore ready‑to‑use data layers, dashboards and learning resources that empower the Lebanese Red Cross — and our partners — to act quickly and effectively when lives are on the line.</h5>
                 </div>
             </div>
 

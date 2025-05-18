@@ -114,7 +114,7 @@ const BrowseApp:React.FC<Props>= ({
                     onClick={toggleCategoryFilter}
                 >
                     {
-                        <span className={`text-blue font-size-1 ${ isCategoryFilterVisible ? 'icon-ui-up': 'icon-ui-down'}`}></span>
+                        <span className={`text-red font-size-1 ${ isCategoryFilterVisible ? 'icon-ui-up': 'icon-ui-down'}`}></span>
                     }
                 </div>
             </div>

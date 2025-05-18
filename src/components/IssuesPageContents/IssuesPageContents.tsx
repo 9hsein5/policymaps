@@ -214,7 +214,7 @@ const IssuesPage:React.FC<{}> = ()=>{
                         <ul>
                             <li>Try different search terms, change both filters to "All" at left, or change category just above.</li>  
                             {/* <li>{secondOption}</li>   */}
-                            <li>Search <span className="btn btn-transparent padding-left-0 padding-right-0 padding-leader-0" onClick={searchOnLivingAtlas}>ArcGIS Living Atlas of the World</span> for your criteria </li>  
+                            <li>Search <span className="btn btn-transparent padding-left-0 padding-right-0 padding-leader-0" onClick={searchOnLivingAtlas}>LRC Atlas of Lebanon</span> for your criteria </li>  
                         </ul>
                     </div>
 
@@ -347,6 +347,20 @@ const IssuesPage:React.FC<{}> = ()=>{
                         <div className='trailer-half'>
                             <div className='btn btn-fill btn-clear'
                                 onClick={setIsShareDialogOn.bind(undefined, true)}
+                                style={{
+                                    backgroundColor: 'transparent',
+                                    border:           '1px solid #D52B1E',
+                                    color:             '#D52B1E',
+                                    transition:       'background-color 150ms ease, color 150ms ease'
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.backgroundColor = '#D52B1E';
+                                    e.currentTarget.style.color           = '#fff';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    e.currentTarget.style.color           = '#D52B1E';
+                                }}
                             >
                                 Share these items
                             </div>
@@ -367,7 +381,7 @@ const IssuesPage:React.FC<{}> = ()=>{
                         currentUrl={window.location.href}
                         onClose={setIsShareDialogOn.bind(undefined, false)}
                         shareToSocialMediaOnClick={(name)=>{
-                            shareToSocialMedia(name, 'Check out these policy mapping items from the Esri Maps for Public Policy site')
+                            shareToSocialMedia(name, 'Check out these policy mapping items from the Lebanese Red Cross site')
                         }}
                     />
                 )

@@ -74,9 +74,24 @@ const CardList:React.FC<Props> = ({
                                     'height': '16px',
                                     'verticalAlign': '-3px'
                                 }}
+                                title={typeDisplayName}
+                                alt={typeDisplayName}
                             />
                             <span>{typeDisplayName} by </span>
-                            <a href={ownerProfileUrl} target='_blank'>{owner}</a>
+                            <a href={ownerProfileUrl} 
+                                target="_blank"
+                                rel="noopener"
+                                style={
+                                    {
+                                        color: '#D52B1E',
+                                        textDecoration: 'none',
+                                    }
+                                }
+                                onMouseEnter={e => (e.currentTarget.style.color = '#A31A13')}
+                                onMouseLeave={e => (e.currentTarget.style.color = '#D52B1E')}
+                                >
+                                    {owner}
+                            </a>
                         </div>
 
                         <div

@@ -90,7 +90,20 @@ const RegularCard:React.FC<Props> = ({
             <div className='card-content'>
                 <div>
                     <div className="font-size--1 trailer-quarter" title={title}>
-                        <a href={link} target="_blank">{stringFns.trunc(title, 50, true)}</a>
+                        <a href={link} 
+                            target="_blank"
+                            rel="noopener"
+                            style={
+                                {
+                                    color: '#D52B1E',
+                                    textDecoration: 'none',
+                                }
+                            }
+                            onMouseEnter={e => (e.currentTarget.style.color = '#A31A13')}
+                            onMouseLeave={e => (e.currentTarget.style.color = '#D52B1E')}
+                            >
+                                {stringFns.trunc(title, 50, true)}
+                        </a>
                     </div>
 
                     <p className="font-size--3 trailer-half" title={description}>
@@ -114,8 +127,21 @@ const RegularCard:React.FC<Props> = ({
                         style={{
                             "width": "48%",
                             "margin": "0 .1rem",
+                            "backgroundColor": "transparent",
+                            "border": "1px solid #D52B1E",
+                            "color": "#D52B1E",
+                            "cursor": "pointer",
+                            "transition": "all 150ms ease",
                         }}
                         onClick={viewBtnOnClick.bind(this, item)}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = '#D52B1E';
+                            e.currentTarget.style.color           = '#fff';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color           = '#D52B1E';
+                        }}
                     >View</div>
 
                     <div 
@@ -124,9 +150,22 @@ const RegularCard:React.FC<Props> = ({
                         })}
                         style={{
                             "width": "48%",
-                            "margin": "0 .1rem"
+                            "margin": "0 .1rem",
+                            "backgroundColor": "transparent",
+                            "border": "1px solid #D52B1E",
+                            "color": "#D52B1E",
+                            "cursor": "pointer",
+                            "transition": "all 150ms ease",
                         }}
                         onClick={toggleCollectBtnOnClick.bind(this, item)}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.backgroundColor = '#D52B1E';
+                            e.currentTarget.style.color           = '#fff';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color           = '#D52B1E';
+                        }}
                     >
                         { 
                             isInCollection 

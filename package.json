@@ -1,5 +1,5 @@
 {
-  "name": "policymaps-new",
+  "name": "policymaps",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vannizhang/policymaps-new.git"
+    "url": "git+https://github.com/9hsein5/policymaps.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/vannizhang/policymaps-new/issues"
+    "url": "https://github.com/9hsein5/policymaps/issues"
   },
-  "homepage": "https://github.com/vannizhang/policymaps-new#readme",
+  "homepage": "https://github.com/9hsein5/policymaps#readme",
   "devDependencies": {
     "@babel/core": "^7.14.6",
     "@babel/plugin-proposal-class-properties": "^7.10.4",

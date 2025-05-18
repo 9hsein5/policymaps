@@ -10,7 +10,7 @@ export type ShareDialogProps = {
     shareToSocialMediaOnClick: (name:SupportedSocialMedia)=>void;
 }
 
-export const BACKGROUND_COLOR = '#0079c1';
+export const BACKGROUND_COLOR = '#D52B1E';
 
 const ShareDialog:React.FC<ShareDialogProps> = ({
     currentUrl,
@@ -37,7 +37,7 @@ const ShareDialog:React.FC<ShareDialogProps> = ({
                 'padding': '.75rem',
                 'boxSizing': 'border-box',
                 'background': BACKGROUND_COLOR,
-                'border': '1px solid #005e95',
+                'border': '1px solid #A31A13',
                 'color': '#fff',
                 'boxShadow': '0 2px 6px rgba(0, 0, 0, 0.2)',
             }}
@@ -71,8 +71,8 @@ const ShareDialog:React.FC<ShareDialogProps> = ({
                         className="btn btn-small" 
                         style={{
                             height: '2rem',
-                            background: '#005e95',
-                            border: '1px solid #005e95'
+                            background: '#A31A13',
+                            border: '1px solid #A31A13'
                         }}
                         onClick={copyUrl}
                     >Copy</button>

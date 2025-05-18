@@ -40,8 +40,8 @@ const PolicyQuestionsCards:React.FC = ()=>{
             <div className='grid-container'>
 
                 <div className='column-10 center-column text-center'>
-                    <h3 className="text-blue avenir-light trailer-1">Emerging Policy Questions &amp; Solution Approaches</h3>
-                    <p className="font-size--1 trailer-2">Gain inspiration from forward-thinking organizations and policy analysts tackling today’s community challenges.</p>
+                    <h3 className="text-red avenir-light trailer-1">Humanitarian Questions We&rsquo;re Tackling</h3>
+                    <p className="font-size--1 trailer-2">Discover the pressing challenges in Lebanon—then explore our data-driven approaches to saving lives and building resilience.</p>
                 </div>
 
                 <div className='column-18 center-column text-center'>

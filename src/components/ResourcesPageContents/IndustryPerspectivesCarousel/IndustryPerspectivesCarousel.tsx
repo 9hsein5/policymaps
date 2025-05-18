@@ -124,8 +124,19 @@ const IndustryPerspectivesCarousel:React.FC<Props> = ({
 
                 <div className='text-center leader-2'>
                     <h4 className="avenir-demi">
-                        <a href={`https://www.arcgis.com/sharing/rest/content/items/${centerItem.id}/data`} target="_blank">
-                            {centerItem.title}
+                        <a href={`https://www.arcgis.com/sharing/rest/content/items/${centerItem.id}/data`}
+                            target="_blank"
+                            rel="noopener"
+                            style={
+                                {
+                                    color: '#D52B1E',
+                                    textDecoration: 'none',
+                                }
+                            }
+                            onMouseEnter={e => (e.currentTarget.style.color = '#A31A13')}
+                            onMouseLeave={e => (e.currentTarget.style.color = '#D52B1E')}
+                            >
+                                {centerItem.title}
                         </a>
                     </h4>
 

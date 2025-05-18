@@ -46,6 +46,10 @@ const PageLayout: React.FC<Props> = ({
                 path: '../browse/',
             },
             {
+                label: 'Chat',
+                path: '../chat/',
+            },
+            {
                 label: 'Issues',
                 path: '../issues/',
             },
@@ -70,7 +74,7 @@ const PageLayout: React.FC<Props> = ({
             {
                 !isEmbedded ? (
                     <SiteNav 
-                        siteName={'Esri Maps for Public Policy'}
+                        siteName={'Lebanese Red Cross – Data for Humanitarian Action'}
                         links={getNavLinksData()}
                     /> 
                 ): null

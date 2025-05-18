@@ -39,7 +39,18 @@ const CalciteCard:React.FC<Props> = ({
 
             <div className='card-content text-left'>
                 <div className="font-size-0 trailer-half">
-                    <a href={url} target="_blank">
+                    <a href={url} 
+                       target="_blank"
+                       rel="noopener"
+                       style={
+                           {
+                               color: '#D52B1E',
+                               textDecoration: 'none',
+                           }
+                       }
+                       onMouseEnter={e => (e.currentTarget.style.color = '#A31A13')}
+                       onMouseLeave={e => (e.currentTarget.style.color = '#D52B1E')}
+                    >
                         {title}
                     </a>
                 </div>

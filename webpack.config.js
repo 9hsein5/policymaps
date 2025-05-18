@@ -8,7 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-const SiteTitle = 'Esri Maps for Public Policy';
+const SiteTitle = 'Lebanese Red Cross – Data for Humanitarian Action';
 
 module.exports =  (env, options)=> {
 
@@ -18,6 +18,7 @@ module.exports =  (env, options)=> {
         entry: {
             overview: path.resolve(__dirname, "./src/pages/Overview/OverviewPage.tsx"),
             browse: path.resolve(__dirname, "./src/pages/Browse/BrowsePage.tsx"),
+            chat: path.resolve(__dirname, "./src/pages/Chat/ChatPage.tsx"),
             issues: path.resolve(__dirname, "./src/pages/Issues/IssuesPage.tsx"),
             resources: path.resolve(__dirname, "./src/pages/Resources/ResourcesPage.tsx"),
         },
@@ -113,7 +114,7 @@ module.exports =  (env, options)=> {
             devMode ? new CopyPlugin({
                 patterns: [
                     { 
-                        from: 'src/media/**/*', 
+                        from: 'src/media', 
                         to: 'media/policymaps'
                     }
                 ]
@@ -136,7 +137,7 @@ module.exports =  (env, options)=> {
                 chunks: ['overview'],
                 title: `Overview | ${SiteTitle}`,
                 meta: {
-                    description: 'Esri Maps for Public Policy offers maps, layers, training, and other resources to help policymakers make data-driven decisions.'
+                    description: 'Free, ready-to-use humanitarian maps, data layers and dashboards that support evidence-based decision making across Lebanon.'
                 },
                 minify: {
                     html5                          : true,
@@ -160,7 +161,31 @@ module.exports =  (env, options)=> {
                 chunks: ['browse'],
                 title: `Explore | ${SiteTitle}`,
                 meta: {
-                    description: 'Access maps and analysis that act as the baseline for your research and policy decisions'
+                    description: 'Search, filter and download datasets powering Lebanese Red Cross operations and community resilience programmes'
+                },
+                minify: {
+                    html5                          : true,
+                    collapseWhitespace             : true,
+                    minifyCSS                      : true,
+                    minifyJS                       : true,
+                    minifyURLs                     : false,
+                    removeComments                 : true,
+                    removeEmptyAttributes          : true,
+                    removeOptionalTags             : true,
+                    removeRedundantAttributes      : true,
+                    removeScriptTypeAttributes     : true,
+                    removeStyleLinkTypeAttributese : true,
+                    useShortDoctype                : true
+                }
+            }),
+            new HtmlWebpackPlugin({
+                template: path.resolve(__dirname, './src/layouts/site.layout.html'),
+                inject: true,
+                filename: './chat/index.html',
+                chunks: ['chat'],
+                title: `Chat | ${SiteTitle}`,
+                meta: {
+                    description: 'Chat is a tool that helps you visualize and analyze chat data on a map. It allows you to explore the spatial distribution of chat messages and identify patterns and trends in the data.'
                 },
                 minify: {
                     html5                          : true,
@@ -184,7 +209,7 @@ module.exports =  (env, options)=> {
                 chunks: ['issues'],
                 title: `Issues | ${SiteTitle}`,
                 meta: {
-                    description: 'Browse the curated datasets on major topics including economic opportunity, social equity, health, sustainability, and more'
+                    description: 'Explore data‑driven stories on health, climate, inclusion and other humanitarian themes'
                 },
                 minify: {
                     html5                          : true,
@@ -208,7 +233,7 @@ module.exports =  (env, options)=> {
                 chunks: ['resources'],
                 title: `Resources | ${SiteTitle}`,
                 meta: {
-                    description: 'Get education, training, and best practices that help raise your data literacy'
+                    description: 'Guides, trainings and best practices to help you work responsibly with humanitarian data'
                 },
                 minify: {
                     html5                          : true,

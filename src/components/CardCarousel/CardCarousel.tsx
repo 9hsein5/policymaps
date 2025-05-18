@@ -42,7 +42,7 @@ const CardCarousel:React.FC<Props> = ({
                 style={{
                     'display': 'flex',
                     'alignItems': 'center',
-                    'justifyContent': 'flex-end'
+                    'justifyContent': 'flex-end',
                 }}
             >
                 <div className='margin-right-half'>

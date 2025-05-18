@@ -168,7 +168,17 @@ const TopicsExplorer:React.FC = ()=>{
 
                         <div className='btn btn-large btn-fill'
                             onClick={explorerBtnOnClick}
-                        >
+                            style={{
+                              backgroundColor: '#D52B1E',
+                              borderColor:     '#D52B1E',
+                              color:           '#fff'
+                            }}
+                            onMouseEnter={e =>
+                                (e.currentTarget.style.backgroundColor = '#A31A13')
+                            }
+                            onMouseLeave={e =>
+                                (e.currentTarget.style.backgroundColor = '#D52B1E')
+                            }>
                             Explore Your Community
                         </div>
                     </div>
@@ -203,7 +213,7 @@ const TopicsExplorer:React.FC = ()=>{
                         'borderRadius': '50%',
                         'cursor': 'pointer',
                         'backgroundColor': i === index4ActiveTopic 
-                            ? '#56a5d8'
+                            ? '#D52B1E'
                             : 'rgba(255, 255, 255, 0.8)' 
                     }}
                     onClick={setIndex4ActiveTopic.bind(this, i)}
