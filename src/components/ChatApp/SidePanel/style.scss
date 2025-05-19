@@ -1,0 +1,38 @@
+.chat-app-side-panel {
+  background-color: #fff;
+  
+  .chat-app-tabs {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    
+    .chat-app-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 8px;
+      cursor: pointer;
+      font-weight: 500;
+      color: #595959;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background-color: #f8f8f8;
+      }
+      
+      &.active {
+        color: #D52B1E;
+        border-bottom: 2px solid #D52B1E;
+      }
+      
+      span {
+        margin-right: 5px;
+      }
+    }
+  }
+  
+  .chat-app-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+}
