@@ -84,7 +84,7 @@ const RegularCard:React.FC<Props> = ({
                 }}
                 onClick={viewBtnOnClick.bind(this, item)}
             >
-                <img className="card-image" src={imageUrl} />
+                <img className="card-image" src={imageUrl} alt={title} />
             </figure>
 
             <div className='card-content'>

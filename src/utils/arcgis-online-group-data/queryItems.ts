@@ -21,6 +21,7 @@ type SearchParam = {
     category?: string;
     sortField?: string;
     sortOrder?: string;
+    [key: string]: string | number | undefined;
 }
 
 const convertParams2str = (params: SearchParam)=>{

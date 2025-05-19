@@ -26,7 +26,7 @@ const CalciteCard:React.FC<Props> = ({
                     'marginBottom': '.25rem'
                 }}
             >
-                <img className="card-image" src={imageUrl} />
+                <img className="card-image" src={imageUrl} alt={title} />
                 <figcaption 
                     className="card-image-caption text-white text-left"
                     style={{

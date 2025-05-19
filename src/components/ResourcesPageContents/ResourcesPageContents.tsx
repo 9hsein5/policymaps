@@ -68,21 +68,21 @@ const ResourcesPageContents:React.FC = ()=>{
             }
         };
 
-        Object.keys(dataBySections).map(key=>{
+        (Object.keys(dataBySections) as ResourceCategoryName[]).forEach(key => {
 
-            let featured:AgolItem = null;
+            let featured: AgolItem = null;
 
-            let cardsData = data.filter(d=>{
+            let cardsData = data.filter(d => {
                 const { groupCategories } = d;
-                return groupCategories.filter(categoryName=>categoryName.indexOf(key) > -1).length;
+                return groupCategories.filter(categoryName => categoryName.indexOf(key) > -1).length;
             });
 
-            cardsData.forEach((d, i)=>{
+            cardsData.forEach((d, i) => {
 
-                d.groupCategories.forEach(categoryName=>{
-                    if(categoryName.indexOf('Featured') > -1){
+                d.groupCategories.forEach(categoryName => {
+                    if (categoryName.indexOf('Featured') > -1) {
 
-                        if(!featured){
+                        if (!featured) {
                             featured = d;
                             cardsData.splice(i, 1);
                         }
@@ -91,7 +91,7 @@ const ResourcesPageContents:React.FC = ()=>{
 
             });
 
-            cardsData.sort((a, b)=>{
+            cardsData.sort((a, b) => {
                 return b.modified - a.modified
             });
 

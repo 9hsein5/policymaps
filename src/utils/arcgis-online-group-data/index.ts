@@ -197,15 +197,19 @@ export default class GroupData {
 
         const { contentType } = this.filters;
 
-        const lookup = {
+        const lookup: Record<ContentType, string> = {
             "maps": '(type:("Project Package" OR "Windows Mobile Package" OR "Map Package" OR "Basemap Package" OR "Mobile Basemap Package" OR "Mobile Map Package" OR "Pro Map" OR "Project Package" OR "Web Map" OR "CityEngine Web Scene" OR "Map Document" OR "Globe Document" OR "Scene Document" OR "Published Map" OR "Explorer Map" OR "ArcPad Package" OR "Map Template") -type:("Web Mapping Application" OR "Layer Package"))',
             "layers": '((type:"Scene Service" OR type:"Feature Collection" OR type:"Route Layer" OR type:"Layer" OR type:"Explorer Layer" OR type:"Tile Package" OR type:"Compact Tile Package" OR type:"Vector Tile Package" OR type:"Scene Package" OR type:"Layer Package" OR type:"Feature Service" OR type:"Stream Service" OR type:"Map Service" OR type:"Vector Tile Service" OR type:"Image Service" OR type:"WMS" OR type:"WFS" OR type:"WMTS" OR type:"KML" OR typekeywords:"OGC" OR typekeywords:"Geodata Service" OR type:"Globe Service" OR type:"CSV" OR type:"Shapefile" OR type:"GeoJson" OR type:"Service Definition" OR type:"File Geodatabase" OR type:"CAD Drawing" OR type:"Relational Database Connection") -type:("Web Mapping Application" OR "Geodata Service"))',
             "apps": '(type:("Code Sample" OR "Web Mapping Application" OR "Mobile Application" OR "Application" OR "Desktop Application Template" OR "Desktop Application" OR "Operation View" OR "Dashboard" OR "Operations Dashboard Extension" OR "Workforce Project" OR "Insights Workbook" OR "Insights Page" OR "Insights Model" OR "Hub Page" OR "Hub Initiative" OR "Hub Site Application"))',
+            "tools": '(type:("Geoprocessing Package" OR "Geoprocessing Sample" OR "Geoprocessing Package" OR "Locator Package" OR "Rule Package" OR "Geoprocessing Service" OR "Raster Function Template" OR "Web Tool" OR "Deep Learning Package"))',
             "files": '((typekeywords:"Document" OR type:"Image" OR type:"Layout" OR type:"Desktop Style" OR type:"Project Template" OR type:"Report Template" OR type:"Statistical Data Collection" OR type:"360 VR Experience" OR type:"netCDF") -type:("Map Document" OR "Image Service" OR "Explorer Document" OR "Explorer Map" OR "Globe Document" OR "Scene Document"))',
             "webmap": '(type:("Web Map") -type:"Web Mapping Application")'
         };
 
-        return lookup[contentType] || '';
+        if (contentType && contentType in lookup) {
+            return lookup[contentType as ContentType];
+        }
+        return '';
     };
 
     private getSearchTerm(): string {
@@ -242,23 +246,18 @@ export default class GroupData {
 
         const { sortField } = this.filters;
 
-        const lookup = {
-            'relevance': {
-                sortOrder: 'desc'
-            },
-            'modified': {
-                sortOrder: 'desc'
-            },
-            'title': {
-                sortOrder: 'asc'
-            },
+        const lookup: Record<SortField, { sortOrder: string }> = {
+            relevance: { sortOrder: 'desc' },
+            modified: { sortOrder: 'desc' },
+            name: { sortOrder: 'asc' }
         };
+
+        const key = (sortField && sortField in lookup ? sortField : 'relevance') as SortField;
 
         return {
-            sortField: sortField || 'relevance',
-            sortOrder: lookup[sortField] ? lookup[sortField].sortOrder : 'desc'
+            sortField: key,
+            sortOrder: lookup[key].sortOrder
         };
-
     }
 
     private getQueryParams({
@@ -288,7 +287,7 @@ export default class GroupData {
         };
 
         const paramsStr = Object.keys(params).map(key=>{
-            return `${key}=${params[key]}`;
+            return `${key}=${params[key as keyof typeof params]}`;
         }).join('&');
 
         return paramsStr;

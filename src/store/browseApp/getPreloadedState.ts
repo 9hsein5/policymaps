@@ -88,7 +88,7 @@ const getPreloadedState4ItemCollection = async(): Promise<ItemCollectionState> =
         ? await fetchItems(collections) 
         : [];
     
-    const byIds = {};
+    const byIds: { [key: string]: AgolItem } = {};
 
     items.forEach(item=>{
         byIds[item.id] = item

@@ -59,6 +59,7 @@ const ShareDialog:React.FC<ShareDialogProps> = ({
                     className="input-group-input" 
                     type="text" 
                     placeholder=""
+                    title='Click to copy the URL'
                     value={currentUrl}
                     style={{
                         height: '2rem',

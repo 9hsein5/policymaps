@@ -57,24 +57,30 @@ const IssuesPage:React.FC<{}> = ()=>{
     const [ activeMainCategoryTitle, setActiveMainCategoryTitle] = React.useState<string>(hashParams.category ? hashParams.category.split(':')[0] : '');
     const searchTermRef = React.useRef<string>(hashParams.q || '');
 
-    const initCategorySchema = async () =>{
-
-        const categorySchemaRes = await getCategorySchema({ 
-            agolGroupId: Tier.PROD.AGOL_GROUP_ID 
-        });
-        // console.log(categorySchemaRes);
-
-        const categorySchema:CategorySchemaDataItem = categorySchemaRes[0];
-
-        // filter out 'Resources' category
-        categorySchema.categories = categorySchema.categories.filter(item=>{
-            return item.title !== 'Resources'
+    const initCategorySchema = async () => {
+        const res = await getCategorySchema({
+            agolGroupId: Tier.PROD.AGOL_GROUP_ID
         });
 
-        // console.log(categorySchema)
+        // `res` might be CategorySchemaDataItem[] or { categorySchema: CategorySchemaDataItem[] }
+        const list: CategorySchemaDataItem[] = 
+            Array.isArray(res)
+            ? res
+            : // @ts-ignore: in case the TS type is inaccurate
+            res.categorySchema;
 
-        setCategorySchema(categorySchema);
-    }
+        if (!list || list.length === 0) {
+            console.error('no category schema items found!', res);
+            return;
+        }
+
+        const schema = list[0];
+
+        // remove the “Resources” bucket
+        schema.categories = schema.categories.filter(cat => cat.title !== 'Resources');
+
+        setCategorySchema(schema);
+    };
 
     // init the module that will be used to query items from the Policy Maps group on ArcGIS online
     const initAgolGroupData = async ()=>{

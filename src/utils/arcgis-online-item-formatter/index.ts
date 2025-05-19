@@ -105,7 +105,7 @@ const getUrl = (item:AgolItem, agolHost = 'https://www.arcgis.com')=>{
         'Dashboard': urlForDashboard
     };
 
-    return urlByContentType[typeDisplayName] || urlAgolItemPage;
+    return urlByContentType[typeDisplayName as keyof typeof urlByContentType] || urlAgolItemPage;
 }
 
 const getAgolItemUrl = (itemId='', agolHost='https://www.arcgis.com')=>{
