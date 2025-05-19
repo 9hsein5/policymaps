@@ -7,10 +7,23 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const webpack = require('webpack');
+const dotenv = require('dotenv');
 
 const SiteTitle = 'Lebanese Red Cross – Data for Humanitarian Action';
 
 module.exports =  (env, options)=> {
+    // Load environment variables from .env file
+    const envResult = dotenv.config();
+    
+    // Create an object with environment variables
+    const envVars = envResult.parsed || {};
+    
+    // Format environment variables for webpack
+    const envKeys = Object.keys(envVars).reduce((prev, next) => {
+        prev[`process.env.${next}`] = JSON.stringify(envVars[next]);
+        return prev;
+    }, {});
 
     const devMode = options.mode === 'development' ? true : false;
 
@@ -110,6 +123,9 @@ module.exports =  (env, options)=> {
             ]
         },
         plugins: [
+            // Add the DefinePlugin to inject environment variables
+            new webpack.DefinePlugin(envKeys),
+            
             new ForkTsCheckerWebpackPlugin(),
             devMode ? new CopyPlugin({
                 patterns: [

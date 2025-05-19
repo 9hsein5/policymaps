@@ -37,6 +37,7 @@
     "@types/react-responsive": "^8.0.2",
     "@types/redux-mock-store": "^1.0.3",
     "@types/styled-components": "^5.1.26",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
     "@vue/preload-webpack-plugin": "^2.0.0",
@@ -45,6 +46,7 @@
     "copy-webpack-plugin": "^9.0.0",
     "css-loader": "^5.2.6",
     "css-minimizer-webpack-plugin": "^3.0.1",
+    "dotenv": "^16.5.0",
     "eslint": "^8.22.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
@@ -77,6 +79,11 @@
     "webpack-dev-server": "^4.9.3"
   },
   "dependencies": {
+    "@azure/core-auth": "^1.9.0",
+    "@azure/cosmos": "^4.4.1",
+    "@azure/identity": "^4.10.0",
+    "@azure/openai": "^2.0.0",
+    "@azure/search-documents": "^12.1.0",
     "@esri/arcgis-rest-portal": "^3.4.1",
     "@reduxjs/toolkit": "^1.9.0",
     "@types/arcgis-js-api": "^4.14.0",
@@ -87,12 +94,14 @@
     "classnames": "^2.2.6",
     "esri-loader": "^3.6.0",
     "helper-toolkit-ts": "^1.1.14",
+    "openai": "^4.100.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-redux": "^8.0.5",
     "redux": "^4.2.0",
     "shortid": "^2.2.15",
-    "styled-components": "^5.2.2"
+    "styled-components": "^5.2.2",
+    "uuid": "^11.1.0"
   },
   "resolutions": {
     "styled-components": "^5"

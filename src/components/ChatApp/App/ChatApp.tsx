@@ -1,12 +1,9 @@
 import * as React from 'react';
-
-import {
-    SiteContext
-} from '../../../contexts/SiteContextProvider';
-
 import SidePanel from '../SidePanel/SidePanel';
 import MapView from '../MapView/MapViewContainer';
 import { AgolItem } from '../../../utils/arcgis-online-item-formatter';
+import { SiteContext } from '../../../contexts/SiteContextProvider';
+import './style.scss';
 
 interface Props {
     searchResults: AgolItem[];
@@ -26,22 +23,11 @@ const ChatApp: React.FC<Props> = ({
     onChatMessageSend
 }) => {
     const { isEmbedded } = React.useContext(SiteContext);
+    const [userId] = React.useState<string>('anonymous');
 
     return (
-        <>
-            <div style={{
-                "position": "absolute",
-                "top": isEmbedded ? '0' : "117px",
-                "left": "0",
-                "bottom": "0",
-                "width": "100%",
-                "display": "flex",
-                "flexDirection": "row",
-                "flexWrap": "nowrap",
-                "justifyContent": "flex-start",
-                "alignContent": "stretch",
-                "alignItems": "stretch"
-            }}>
+        <div className="chat-app-container">
+            <div className="chat-app-content">
                 <SidePanel
                     activeTab={activeTab}
                     onTabChange={onTabChange}
@@ -49,16 +35,14 @@ const ChatApp: React.FC<Props> = ({
                     searchResultsCount={searchResultsCount}
                     onSearchTermChange={onSearchTermChange}
                     onChatMessageSend={onChatMessageSend}
+                    userId={userId}
                 />
 
-                <div style={{
-                    "position": "relative",
-                    "flexGrow": 1
-                }}>
+                <div className="map-container">
                     <MapView />
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

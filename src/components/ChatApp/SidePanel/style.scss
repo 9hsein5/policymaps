@@ -36,3 +36,11 @@
     overflow: hidden;
   }
 }
+
+.chat-app-side-panel {
+  width: 360px;        /* or max-width:360px if you want it to be flexible   */
+  flex: 0 0 360px;     /* 0 grow | 0 shrink | basis 360px — keeps width fixed */
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e0e0e0; /* optional, just looks nicer */
+}

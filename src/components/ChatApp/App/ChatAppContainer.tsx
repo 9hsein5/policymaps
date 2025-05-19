@@ -7,17 +7,50 @@ import {
 
 import ChatApp from './ChatApp';
 import { itemsSelector, loadMoreItems, searchItems, searchResultSelector, updateSearchTerm } from '../../../store/browseApp/reducers/groupContent';
+import { ChatMessage } from '../services/azure-openai/chat';
+import { saveChatHistory, getChatHistory } from '../services/azure-cosmos/chat-history';
+import { v4 as uuidv4 } from 'uuid';
 
 const ChatAppContainer: React.FC = () => {
     const dispatch = useDispatch();
-    const { isSearchDisabled } = React.useContext(SiteContext);
+    const { isSearchDisabled, isEmbedded } = React.useContext(SiteContext);
     const items = useSelector(itemsSelector);
     const searchResponse = useSelector(searchResultSelector);
     
     const [activeTab, setActiveTab] = React.useState('chat');
-    const [chatMessages, setChatMessages] = React.useState<Array<{type: string, content: string}>>([
-        {type: 'system', content: 'Welcome to the Lebanese Red Cross Map Chat! Ask me about available datasets or how to find specific information.'}
+    const [chatMessages, setChatMessages] = React.useState<ChatMessage[]>([
+        {
+            role: 'system',
+            content: 'Welcome to the Lebanese Red Cross Map Chat! Ask me about available datasets or how to find specific information.'
+        },
+        {
+            role: 'assistant',
+            content: 'Hello! I can help you find geospatial datasets and information. Try asking about "flood maps", "refugee camps", or "healthcare facilities in Lebanon".'
+        }
     ]);
+    const [sessionId, setSessionId] = React.useState<string>('');
+    const [userId, setUserId] = React.useState<string>('anonymous');
+
+    // Initialize session ID and load chat history
+    React.useEffect(() => {
+        // Generate a session ID if not exists
+        const newSessionId = uuidv4();
+        setSessionId(newSessionId);
+
+        // Load chat history (in a real app, this would use actual user authentication)
+        const loadChatHistory = async () => {
+            try {
+                const history = await getChatHistory(userId, newSessionId);
+                if (history && history.messages && history.messages.length > 0) {
+                    setChatMessages(history.messages);
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+            }
+        };
+
+        loadChatHistory();
+    }, [userId]);
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
@@ -25,37 +58,31 @@ const ChatAppContainer: React.FC = () => {
 
     const handleSearchTermChange = (val: string) => {
         dispatch(updateSearchTerm(val));
+        dispatch(searchItems());
     };
 
-    const handleChatMessageSend = (message: string) => {
+    const handleChatMessageSend = async (message: string) => {
         // Add user message to chat
-        setChatMessages(prev => [...prev, {type: 'user', content: message}]);
+        const userMessage: ChatMessage = {
+            role: 'user',
+            content: message
+        };
         
-        // Simulate response - in a real app, this would call an API
-        setTimeout(() => {
-            // Simple response logic - in production this would be connected to a real chat service
-            let responseMessage = '';
-            
-            if (message.toLowerCase().includes('flood') || message.toLowerCase().includes('flooding')) {
-                responseMessage = 'I found some flood-related datasets. Check the results tab to see them.';
-                dispatch(updateSearchTerm('flood'));
-                setActiveTab('results');
-            } else if (message.toLowerCase().includes('earthquake')) {
-                responseMessage = 'Here are some earthquake datasets that might be helpful.';
-                dispatch(updateSearchTerm('earthquake'));
-                setActiveTab('results');
-            } else if (message.toLowerCase().includes('refugee') || message.toLowerCase().includes('camp')) {
-                responseMessage = 'I found some refugee camp datasets. See the results tab.';
-                dispatch(updateSearchTerm('refugee camp'));
-                setActiveTab('results');
-            } else {
-                responseMessage = 'I\'ll search for relevant datasets based on your query.';
-                dispatch(updateSearchTerm(message));
-                setActiveTab('results');
-            }
-            
-            setChatMessages(prev => [...prev, {type: 'system', content: responseMessage}]);
-        }, 1000);
+        const updatedMessages = [...chatMessages, userMessage];
+        setChatMessages(updatedMessages);
+        
+        // Save chat history
+        try {
+            await saveChatHistory(userId, sessionId, updatedMessages);
+        } catch (error) {
+            console.error('Error saving chat history:', error);
+        }
+        
+        // Trigger search based on message
+        handleSearchTermChange(message);
+        
+        // In a real implementation, the response would come from Azure OpenAI
+        // This is handled in the ChatPanel component now
     };
 
     React.useEffect(() => {
