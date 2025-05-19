@@ -31,7 +31,7 @@ module.exports =  (env, options)=> {
         entry: {
             overview: path.resolve(__dirname, "./src/pages/Overview/OverviewPage.tsx"),
             browse: path.resolve(__dirname, "./src/pages/Browse/BrowsePage.tsx"),
-            chat: path.resolve(__dirname, "./src/pages/Chat/ChatPage.tsx"),
+            chat: path.resolve(__dirname, "./src/pages/Chat/EnhancedChatPage.tsx"),
             issues: path.resolve(__dirname, "./src/pages/Issues/IssuesPage.tsx"),
             resources: path.resolve(__dirname, "./src/pages/Resources/ResourcesPage.tsx"),
         },

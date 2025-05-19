@@ -1,0 +1,121 @@
+.enhanced-search-panel {
+  padding: 1rem 0;
+  
+  .search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .search-input-container {
+    display: flex;
+    border: 2px solid #efefef;
+    box-sizing: border-box;
+  }
+  
+  .search-input-wrapper {
+    flex-grow: 1;
+    flex-shrink: 0;
+    padding-left: 0.5rem;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 0.75rem 0.5rem;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    
+    &::placeholder {
+      color: #999;
+    }
+  }
+  
+  .filter-toggle-button {
+    width: 50px;
+    border-left: 1px solid #efefef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: none;
+    border: none;
+    outline: none;
+    color: #D52B1E;
+    font-size: 1rem;
+  }
+  
+  .search-filters {
+    background-color: #f8f8f8;
+    border: 1px solid #efefef;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+  }
+  
+  .filter-section {
+    margin-bottom: 1rem;
+    
+    h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #323232;
+    }
+  }
+  
+  .filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .filter-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+    
+    span {
+      font-size: 0.9rem;
+      color: #595959;
+    }
+  }
+  
+  .filter-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    
+    button {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-apply {
+      background-color: #0079c1;
+      color: white;
+      border: none;
+      
+      &:hover {
+        background-color: #005e95;
+      }
+    }
+    
+    .btn-clear {
+      background-color: transparent;
+      color: #595959;
+      border: 1px solid #e0e0e0;
+      
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+  }
+}
