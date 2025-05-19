@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { queryItemsByIds, queryItemsByCategory } from './queryItems';
 
-export { queryItemsByIds, queryItemsByCategory };
+export { queryItemsByIds, queryItemsByCategory, GroupData};
 
 export type ContentType = 'maps' | 'layers' | 'apps' | 'tools' | 'files' | 'webmap';
 export type SortField = 'relevance' | 'name' | 'modified';

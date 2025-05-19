@@ -4,55 +4,86 @@
   height: 100%;
   position: relative;
   overflow: hidden;
+}
 
-  .sidebar-container {
-    height: 100%;
-    transition: width 0.3s ease;
-    z-index: 10;
-    
-    &.open {
-      width: 320px;
-    }
-    
-    &.closed {
-      width: 0;
-    }
-  }
+.enhanced-chat-side-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #ffffff;
+  z-index: 10;
   
-  .map-container {
-    flex: 1;
-    height: 100%;
-    transition: margin-left 0.3s ease;
-    position: relative;
-    
-    &.sidebar-open {
-      margin-left: 0;
-    }
-    
-    &.sidebar-closed {
-      margin-left: 0;
-    }
-  }
-  
-  .sidebar-toggle-button {
-    position: absolute;
-    top: 50%;
-    left: 320px;
-    transform: translateY(-50%);
-    z-index: 20;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
+  .side-panel-tabs {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: left 0.3s ease;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
     
-    &.closed {
-      left: 0;
+    .tab-list {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-bottom: 1px solid #e0e0e0;
+      
+      .tab {
+        flex: 1;
+        padding: 12px 0;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 500;
+        color: #666;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          color: #333;
+        }
+        
+        &.tab-selected {
+          color: #0079c1;
+          border-bottom-color: #0079c1;
+        }
+      }
     }
+    
+    .tab-panel {
+      flex: 1;
+      overflow: auto;
+      display: none;
+      height: 100%;
+      
+      &.react-tabs__tab-panel--selected {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+}
+
+.map-container {
+  flex: 1;
+  height: 100%;
+  position: relative;
+}
+
+/* Ensure the fancy-scrollbar class is properly styled */
+.fancy-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
   }
 }

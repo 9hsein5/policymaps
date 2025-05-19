@@ -1,215 +1,171 @@
 import * as React from 'react';
 import { AgolItem } from '../../../utils/arcgis-online-item-formatter';
-import { Tier } from '../../../AppConfig';
-// Fix import to use the correct class
-import GroupData from '../../../utils/arcgis-online-group-data';
+import { GroupData } from '../../../utils/arcgis-online-group-data';
 import './style.scss';
+
+// Define the types expected by GroupData
+interface CategorySchemaDataItem {
+  title: string;
+  categories: CategorySchemaMainCategory[];
+}
+
+interface CategorySchemaMainCategory {
+  title: string;
+  categories: CategorySchemaSubCategory[];
+  selected?: boolean;
+}
+
+interface CategorySchemaSubCategory {
+  title: string;
+  categories: [];
+  selected?: boolean;
+}
 
 interface Props {
   searchResults?: AgolItem[];
   searchResultsCount?: number;
   onSearchResults?: (results: AgolItem[], count: number) => void;
+  categorySchema?: CategorySchemaDataItem;
 }
 
 const EnhancedResultsPanel: React.FC<Props> = ({
   searchResults = [],
   searchResultsCount = 0,
-  onSearchResults
+  onSearchResults,
+  categorySchema
 }) => {
+  const [groupResults, setGroupResults] = React.useState<AgolItem[]>(searchResults);
   const [loading, setLoading] = React.useState<boolean>(false);
-  const [results, setResults] = React.useState<AgolItem[]>(searchResults);
-  const [totalCount, setTotalCount] = React.useState<number>(searchResultsCount);
-  const [page, setPage] = React.useState<number>(1);
   const [error, setError] = React.useState<string | null>(null);
   
-  // Use Group ID from configuration
-  const groupId = Tier.PROD.AGOL_GROUP_ID;
-  
-  // Debug logging
+  // Update local state when props change
   React.useEffect(() => {
-    console.log('EnhancedResultsPanel - Group ID:', groupId);
-    console.log('EnhancedResultsPanel - Initial search results:', searchResults);
-  }, []);
+    setGroupResults(searchResults);
+  }, [searchResults]);
   
-  // Load results from ArcGIS Online when component mounts or searchResults change
+  // Fetch results from ArcGIS Online if none are provided
   React.useEffect(() => {
-    if (searchResults && searchResults.length > 0) {
-      setResults(searchResults);
-      setTotalCount(searchResultsCount);
-    } else {
-      loadResultsFromArcGIS();
+    if (searchResults.length === 0 && categorySchema) {
+      fetchGroupResults();
     }
-  }, [searchResults, searchResultsCount]);
+  }, [categorySchema]);
   
-  // Load results from ArcGIS Online
-  const loadResultsFromArcGIS = async () => {
-    if (!groupId) {
-      setError('No Group ID configured. Please check your configuration.');
-      return;
-    }
-    
+  const fetchGroupResults = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('Loading results from ArcGIS Online with Group ID:', groupId);
+      // Get the group ID from environment or config
+      const groupId = process.env.REACT_APP_AGOL_GROUP_ID || '';
       
-      // Create a new instance of GroupData with empty category schema
-      const groupData = new GroupData({
+      if (!groupId) {
+        setError('No group ID configured');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching results for group:', groupId);
+      console.log('Using category schema:', categorySchema);
+      
+      if (!categorySchema) {
+        setError('Category schema not available');
+        setLoading(false);
+        return;
+      }
+      
+      // Create a new GroupData instance with proper filters object
+      const groupDataHelper = new GroupData({
         groupId,
-        categorySchema: { 
-          title: 'Categories', 
-          categories: [] 
-        },
-        // Set default filters to ensure we get results
+        categorySchema,
         filters: {
-          searchTerm: '',
+          sortField: 'modified',
           contentType: '',
-          sortField: 'modified'
+          searchTerm: ''
         }
       });
       
-      console.log('GroupData instance created, executing search...');
-      
-      const response = await groupData.search({
-        start: (page - 1) * 10 + 1,
-        num: 10
+      // Search for items
+      const response = await groupDataHelper.search({
+        num: 10,
+        start: 1
       });
       
-      console.log('ArcGIS Online search response:', response);
+      console.log('Search results:', response);
       
       if (response && response.results) {
-        setResults(response.results);
-        setTotalCount(response.total);
+        setGroupResults(response.results);
         
-        // Notify parent component of search results
+        // Notify parent component of results
         if (onSearchResults) {
           onSearchResults(response.results, response.total);
         }
-      } else {
-        setError('No results returned from ArcGIS Online.');
       }
-    } catch (error) {
-      console.error('Error loading results from ArcGIS Online:', error);
-      setError(`Error loading results: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching group results:', err);
+      setError(`Error fetching results: ${err instanceof Error ? err.message : String(err)}`);
       setLoading(false);
     }
-  };
-  
-  // Load more results
-  const loadMore = async () => {
-    if (loading || results.length >= totalCount) return;
-    
-    const nextPage = page + 1;
-    setPage(nextPage);
-    
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Create a new instance of GroupData with empty category schema
-      const groupData = new GroupData({
-        groupId,
-        categorySchema: { 
-          title: 'Categories', 
-          categories: [] 
-        },
-        // Set default filters to ensure we get results
-        filters: {
-          searchTerm: '',
-          contentType: '',
-          sortField: 'modified'
-        }
-      });
-      
-      const response = await groupData.search({
-        start: (nextPage - 1) * 10 + 1,
-        num: 10
-      });
-      
-      if (response && response.results) {
-        setResults(prev => [...prev, ...response.results]);
-      } else {
-        setError('No additional results returned from ArcGIS Online.');
-      }
-    } catch (error) {
-      console.error('Error loading more results:', error);
-      setError(`Error loading more results: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Format date for display
-  const formatDate = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString();
   };
   
   return (
     <div className="enhanced-results-panel">
       <div className="results-header">
-        <h2>Results</h2>
-        <span className="results-count">{totalCount} items</span>
-        {groupId && (
-          <div className="group-id-info">Group ID: {groupId}</div>
-        )}
+        <h3>Results</h3>
+        <span className="results-count">{searchResultsCount} items</span>
       </div>
+      
+      {loading && (
+        <div className="loading-indicator">
+          Loading results...
+        </div>
+      )}
       
       {error && (
         <div className="error-message">
           {error}
-          <button onClick={loadResultsFromArcGIS} className="retry-button">
-            Retry
-          </button>
         </div>
       )}
       
-      {loading && results.length === 0 ? (
-        <div className="loading-indicator">Loading results...</div>
-      ) : results.length === 0 && !error ? (
+      {!loading && !error && groupResults.length === 0 && (
         <div className="no-results">
-          <p>No results found</p>
-          <button onClick={loadResultsFromArcGIS} className="retry-button">
-            Retry Search
-          </button>
+          No results found
         </div>
-      ) : (
-        <div className="results-list">
-          {results.map((item, index) => (
-            <div key={item.id || index} className="result-item">
-              {item.thumbnailUrl && (
-                <div className="result-thumbnail">
-                  <img src={item.thumbnailUrl} alt={item.title} />
+      )}
+      
+      <div className="results-list">
+        {groupResults.map((item, index) => (
+          <div key={item.id || index} className="result-item">
+            <div className="result-thumbnail">
+              {item.thumbnail ? (
+                <img 
+                  src={`https://www.arcgis.com/sharing/rest/content/items/${item.id}/info/${item.thumbnail}`} 
+                  alt={item.title} 
+                />
+              ) : (
+                <div className="placeholder-thumbnail">
+                  <span>{item.type?.charAt(0) || '?'}</span>
                 </div>
               )}
-              <div className="result-content">
-                <h3 className="result-title">{item.title}</h3>
-                {item.snippet && (
-                  <p className="result-snippet">{item.snippet}</p>
-                )}
-                <div className="result-meta">
-                  <span className="result-type">{item.type}</span>
-                  {item.modified && (
-                    <span className="result-date">
-                      Modified: {formatDate(item.modified)}
-                    </span>
-                  )}
-                </div>
+            </div>
+            <div className="result-details">
+              <h4 className="result-title">{item.title}</h4>
+              <p className="result-snippet">{item.snippet || item.description || 'No description available'}</p>
+              <div className="result-metadata">
+                <span className="result-type">{item.type}</span>
+                {item.owner && <span className="result-owner">by {item.owner}</span>}
               </div>
             </div>
-          ))}
-          
-          {results.length < totalCount && (
-            <button 
-              className="load-more-button"
-              onClick={loadMore}
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Load More'}
-            </button>
-          )}
+          </div>
+        ))}
+      </div>
+      
+      {groupResults.length > 0 && (
+        <div className="load-more">
+          <button onClick={fetchGroupResults}>
+            Load more
+          </button>
         </div>
       )}
     </div>

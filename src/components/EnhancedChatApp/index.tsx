@@ -7,12 +7,19 @@ interface Props {
 
 // This is the main entry point for the EnhancedChatApp component
 const EnhancedChatApp: React.FC<Props> = () => {
-  // Import the actual EnhancedChatAppContainer component
-  const EnhancedChatAppContainer = React.lazy(() => import('./App/EnhancedChatAppContainer'));
+  // Import the actual EnhancedChatAppWithBrowseComponents component
+  const EnhancedChatAppWithBrowseComponents = React.lazy(() => import('./App/EnhancedChatAppWithBrowseComponents'));
+  
+  // Initialize with empty arrays/values that will be populated by the actual implementation
+  const [searchResults, setSearchResults] = React.useState<any[]>([]);
+  const [searchResultsCount, setSearchResultsCount] = React.useState<number>(0);
   
   return (
     <React.Suspense fallback={<div className="loading-chat-app">Loading Enhanced Chat Application...</div>}>
-      <EnhancedChatAppContainer />
+      <EnhancedChatAppWithBrowseComponents 
+        searchResults={searchResults}
+        searchResultsCount={searchResultsCount}
+      />
     </React.Suspense>
   );
 };
