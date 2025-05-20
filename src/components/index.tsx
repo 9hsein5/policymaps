@@ -6,7 +6,7 @@ export { default as SiteNav } from './SiteNav/SiteNav';
 
 export { default as BrowseApp } from './BrowseApp/App/AppContainer';
 
-export { default as ChatApp } from './EnhancedChatApp/App/EnhancedChatAppWithBrowseComponents';
+export { default as ChatApp } from './EnhancedChatApp';
 
 export { default as CalciteCard } from './Card/CalciteCard';
 

@@ -1,0 +1,18 @@
+.enhanced-map-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the map takes full height and width */
+.esri-view {
+  height: 100%;
+  width: 100%;
+}
+
+/* Ensure map widgets are properly positioned */
+.esri-ui {
+  z-index: 10;
+}
