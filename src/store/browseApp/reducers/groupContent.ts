@@ -87,8 +87,11 @@ const slice = createSlice({
 
             for (const item of results) {
                 const { id } = item;
-                allIds.push(id);
-                byId[id] = item;
+                // Only add the ID if it's not already in the array to prevent duplicates
+                if (!allIds.includes(id)) {
+                    allIds.push(id);
+                    byId[id] = item;
+                }
             }
 
             state.items = {

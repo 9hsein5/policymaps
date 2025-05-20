@@ -1,5 +1,6 @@
 import * as React from 'react';
 import './style.scss';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ChatMessage {
   id: string;
@@ -22,22 +23,24 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   messages = []
 }) => {
   const [message, setMessage] = React.useState<string>('');
-  const [localMessages, setLocalMessages] = React.useState<ChatMessage[]>([
-    {
-      id: '1',
-      text: 'Welcome to Policy Maps Chat! Ask questions about maps, data layers, or specific geographic areas.',
-      sender: 'system',
-      timestamp: new Date()
-    }
-  ]);
+  const [initialMessageSent, setInitialMessageSent] = React.useState<boolean>(false);
   
-  // Combine local messages with passed-in messages
-  const allMessages = React.useMemo(() => {
+  // Use only messages from props if available, otherwise use a welcome message
+  const displayMessages = React.useMemo(() => {
     if (messages && messages.length > 0) {
-      return [...localMessages, ...messages];
+      return messages;
+    } else if (!initialMessageSent) {
+      // Only show welcome message if no messages from props and we haven't set initial message
+      setInitialMessageSent(true);
+      return [{
+        id: uuidv4(),
+        text: 'Welcome to Policy Maps Chat! Ask questions about maps, data layers, or specific geographic areas.',
+        sender: 'system',
+        timestamp: new Date()
+      }];
     }
-    return localMessages;
-  }, [localMessages, messages]);
+    return [];
+  }, [messages, initialMessageSent]);
   
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   
@@ -47,16 +50,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   
   const handleSendMessage = () => {
     if (message.trim()) {
-      // Add user message to local state
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
-        text: message,
-        sender: 'user',
-        timestamp: new Date()
-      };
-      
-      setLocalMessages(prevMessages => [...prevMessages, userMessage]);
-      
       // Call the onChatMessageSend callback if provided
       if (onChatMessageSend) {
         onChatMessageSend(message);
@@ -82,14 +75,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     if (scrollToBottomHandler) {
       scrollToBottomHandler();
     }
-  }, [allMessages]);
+  }, [displayMessages, scrollToBottomHandler]);
   
   return (
     <div className="chat-panel">
       <div className="chat-messages">
-        {allMessages.map(msg => (
+        {displayMessages.map((msg, index) => (
           <div 
-            key={msg.id} 
+            key={msg.id || `msg-${index}-${Date.now()}`} // Fallback to index + timestamp if ID is missing
             className={`chat-message ${msg.sender === 'user' ? 'user-message' : 'system-message'}`}
           >
             <div className="message-content">{msg.text}</div>

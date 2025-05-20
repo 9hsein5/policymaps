@@ -43,7 +43,12 @@ const ChatAppContainer: React.FC<Props> = ({
     const hideSideBar = useSelector(hideSideBarSelectore);
 
     // Local state for chat and document features
-    const [chatMessages, setChatMessages] = React.useState<any[]>([]);
+    const [chatMessages, setChatMessages] = React.useState<any[]>([{
+        id: 'welcome-message',
+        text: 'Welcome to Policy Maps Chat! Ask questions about maps, data layers, or specific geographic areas.',
+        sender: 'system',
+        timestamp: new Date()
+    }]);
     const [uploadedDocuments, setUploadedDocuments] = React.useState<any[]>([]);
     const [activeTab, setActiveTab] = React.useState<number>(0);
 
@@ -76,19 +81,21 @@ const ChatAppContainer: React.FC<Props> = ({
     
     const handleChatMessageSend = (message: string) => {
         // Add message to local state
-        setChatMessages(prev => [...prev, {
-            id: Date.now().toString(),
+        const newUserMessage = {
+            id: `user-${Date.now()}`,
             text: message,
             sender: 'user',
             timestamp: new Date()
-        }]);
+        };
+        
+        setChatMessages(prev => [...prev, newUserMessage]);
         
         // In a real implementation, this would send the message to a backend service
-        // and handle the response
+        // and handle the response. For now, we'll just acknowledge receipt.
         setTimeout(() => {
             setChatMessages(prev => [...prev, {
-                id: (Date.now() + 1).toString(),
-                text: 'I\'m processing your request. This is a placeholder for the actual chat response.',
+                id: `system-${Date.now()}`,
+                text: 'Thank you for your message. This feature will be connected to a real chat service in the future.',
                 sender: 'system',
                 timestamp: new Date()
             }]);

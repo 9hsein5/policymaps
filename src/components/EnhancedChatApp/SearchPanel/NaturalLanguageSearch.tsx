@@ -48,7 +48,7 @@ const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
 
   return (
     <div className="natural-language-search">
-      <h3>Natural Language Search</h3>
+      <h3>Advanced Search</h3>
       <p>Describe what you're looking for in natural language</p>
       
       <textarea
