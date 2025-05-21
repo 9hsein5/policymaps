@@ -65,15 +65,35 @@ export const saveChatHistory = async (
       // IMPORTANT: Log the messages array length to debug replacement issue
       debugLog(`Saving messages array with ${messagesWithTimestamps.length} messages`);
       
+      // FIXED: Merge existing messages with new ones instead of replacing
+      // Get existing messages from the record
+      const existingMessages = existingRecord.messages || [];
+      
+      // Create a set of existing message content hashes for deduplication
+      const existingContentHashes = new Set(
+        existingMessages.map((msg: ChatMessage) => `${msg.role}:${msg.content}`)
+      );
+      
+      // Filter out any new messages that are duplicates of existing ones
+      const uniqueNewMessages = messagesWithTimestamps.filter(msg => {
+        const contentHash = `${msg.role}:${msg.content}`;
+        return !existingContentHashes.has(contentHash);
+      });
+      
+      debugLog(`Found ${existingMessages.length} existing messages, adding ${uniqueNewMessages.length} new unique messages`);
+      
+      // Combine existing and new messages
+      const combinedMessages = [...existingMessages, ...uniqueNewMessages];
+      
       const updatedRecord: ChatHistoryRecord = {
         ...existingRecord,
-        messages: messagesWithTimestamps,
+        messages: combinedMessages,
         updatedAt: new Date()
       };
       
       // Use sessionId as the partition key when replacing the item
       const { resource } = await container.item(existingRecord.id, sessionId).replace(updatedRecord);
-      debugLog(`Successfully updated session: ${resource?.id}`);
+      debugLog(`Successfully updated session: ${resource?.id} with ${combinedMessages.length} total messages`);
       return resource;
     } else {
       // Create new record
@@ -197,6 +217,20 @@ export const addMessageToChatHistory = async (
         ...message,
         timestamp: message.timestamp || new Date()
       };
+      
+      // Enhanced deduplication check for assistant messages
+      if (message.role === 'assistant') {
+        // Check if this exact message content already exists in the history
+        const hasDuplicate = historyRecord.messages.some(existingMsg => 
+          existingMsg.role === 'assistant' && 
+          existingMsg.content === message.content
+        );
+        
+        if (hasDuplicate) {
+          debugLog('Duplicate assistant message detected, skipping addition to history');
+          return historyRecord; // Return existing record without changes
+        }
+      }
       
       // Add message to existing messages array
       const updatedMessages = [
