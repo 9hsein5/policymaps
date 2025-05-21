@@ -6,6 +6,7 @@ import {
   AZURE_OPENAI_KEY, 
   AZURE_OPENAI_ENDPOINT, 
   AZURE_OPENAI_DEPLOYMENT,
+  AZURE_OPENAI_API_VERSION,
   isAzureOpenAIConfigured 
 } from '../azure-config';
 
@@ -13,6 +14,7 @@ import {
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+  timestamp?: Date; // Added timestamp field
 }
 
 // Create Azure OpenAI client
@@ -25,7 +27,7 @@ export const getOpenAIClient = () => {
     apiKey: AZURE_OPENAI_KEY, 
     baseURL: AZURE_OPENAI_ENDPOINT, 
     deployment: AZURE_OPENAI_DEPLOYMENT, 
-    apiVersion: "2025-04-01-preview", 
+    apiVersion: AZURE_OPENAI_API_VERSION, 
     dangerouslyAllowBrowser: true 
   });
 };
@@ -57,7 +59,8 @@ export const generateChatCompletion = async (
     // Fallback to simple response if Azure OpenAI is not configured
     return {
       role: 'assistant',
-      content: 'Azure OpenAI is not configured. Please check your environment variables.'
+      content: 'Azure OpenAI is not configured. Please check your environment variables.',
+      timestamp: new Date()
     };
   }
   
@@ -69,7 +72,8 @@ export const generateChatCompletion = async (
     if (!messages.some(msg => msg.role === 'system')) {
       messages.unshift({
         role: 'system',
-        content: SYSTEM_PROMPT
+        content: SYSTEM_PROMPT,
+        timestamp: new Date()
       });
     }
     
@@ -91,7 +95,8 @@ export const generateChatCompletion = async (
       const choice = response.choices[0];
       return {
         role: 'assistant',
-        content: choice.message?.content || 'No response generated.'
+        content: choice.message?.content || 'No response generated.',
+        timestamp: new Date()
       };
     } else {
       throw new Error('No completion choices returned from Azure OpenAI');
@@ -100,7 +105,8 @@ export const generateChatCompletion = async (
     console.error('Error generating chat completion:', error);
     return {
       role: 'assistant',
-      content: 'Sorry, I encountered an error while generating a response. Please try again later.'
+      content: 'Sorry, I encountered an error while generating a response. Please try again later.',
+      timestamp: new Date()
     };
   }
 };
@@ -129,7 +135,8 @@ export const generateStreamingChatCompletion = async (
     if (!messages.some(msg => msg.role === 'system')) {
       messages.unshift({
         role: 'system',
-        content: SYSTEM_PROMPT
+        content: SYSTEM_PROMPT,
+        timestamp: new Date()
       });
     }
     

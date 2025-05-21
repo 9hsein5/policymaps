@@ -4,6 +4,7 @@
 export const AZURE_OPENAI_KEY = process.env.REACT_APP_AZURE_OPENAI_KEY || '';
 export const AZURE_OPENAI_ENDPOINT = process.env.REACT_APP_AZURE_OPENAI_ENDPOINT || '';
 export const AZURE_OPENAI_DEPLOYMENT = process.env.REACT_APP_AZURE_OPENAI_DEPLOYMENT || '';
+export const AZURE_OPENAI_API_VERSION = process.env.REACT_APP_AZURE_OPENAI_API_VERSION || '2025-04-01-preview';
 
 // Azure AI Search Configuration
 export const AZURE_SEARCH_KEY = process.env.REACT_APP_AZURE_SEARCH_KEY || '';
@@ -17,7 +18,7 @@ export const AZURE_COSMOS_DATABASE = process.env.REACT_APP_AZURE_COSMOS_DATABASE
 
 // Check if Azure OpenAI is configured
 export const isAzureOpenAIConfigured = (): boolean => {
-  return Boolean(AZURE_OPENAI_KEY && AZURE_OPENAI_ENDPOINT && AZURE_OPENAI_DEPLOYMENT);
+  return Boolean(AZURE_OPENAI_KEY && AZURE_OPENAI_ENDPOINT && AZURE_OPENAI_DEPLOYMENT && AZURE_OPENAI_API_VERSION);
 };
 
 // Check if Azure AI Search is configured

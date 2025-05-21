@@ -29,11 +29,15 @@ export interface EnhancedChatAgent {
 export const createEnhancedChatAgent = (
   userId: string,
   options: {
+    sessionId?: string; // Make sessionId an explicit parameter
     onSearchResults?: (results: SearchResult[]) => void;
   } = {}
 ): EnhancedChatAgent => {
-  // Generate a unique session ID if not provided
-  const sessionId = uuidv4();
+  // Use provided sessionId or generate a new one as fallback
+  const sessionId = options.sessionId || uuidv4();
+  
+  // Log the session ID being used
+  console.log('Chat agent using session ID:', sessionId);
   
   // Chat history
   let chatHistory: ChatMessage[] = [];
@@ -56,7 +60,8 @@ export const createEnhancedChatAgent = (
         // Initialize with system message if no history
         chatHistory = [{
           role: 'system',
-          content: 'You are a helpful assistant for the Policy Maps application, which provides access to curated maps and data layers about humanitarian and resilience-related facts.'
+          content: 'You are a helpful assistant for the Policy Maps application, which provides access to curated maps and data layers about humanitarian and resilience-related facts.',
+          timestamp: new Date()
         }];
       }
       
@@ -80,7 +85,8 @@ export const createEnhancedChatAgent = (
   const clearChatHistory = async (): Promise<void> => {
     chatHistory = [{
       role: 'system',
-      content: 'You are a helpful assistant for the Policy Maps application, which provides access to curated maps and data layers about humanitarian and resilience-related facts.'
+      content: 'You are a helpful assistant for the Policy Maps application, which provides access to curated maps and data layers about humanitarian and resilience-related facts.',
+      timestamp: new Date()
     }];
     
     await saveChatHistoryToDb();
@@ -95,7 +101,8 @@ export const createEnhancedChatAgent = (
     // Add user message to chat history
     const userMessage: ChatMessage = {
       role: 'user',
-      content: message
+      content: message,
+      timestamp: new Date() // Add timestamp to user message
     };
     
     chatHistory.push(userMessage);
@@ -133,6 +140,11 @@ export const createEnhancedChatAgent = (
       // Generate chat completion
       const assistantMessage = await generateChatCompletion(chatHistory);
       
+      // Ensure assistant message has timestamp
+      if (!assistantMessage.timestamp) {
+        assistantMessage.timestamp = new Date();
+      }
+      
       // Add assistant message to chat history
       chatHistory.push(assistantMessage);
       
@@ -163,7 +175,8 @@ export const createEnhancedChatAgent = (
       // Create error response
       const errorResponse: ChatMessage = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error while processing your request. Please try again later.'
+        content: 'Sorry, I encountered an error while processing your request. Please try again later.',
+        timestamp: new Date() // Add timestamp to error response
       };
       
       // Add error response to chat history
@@ -187,7 +200,8 @@ export const createEnhancedChatAgent = (
     // Add user message to chat history
     const userMessage: ChatMessage = {
       role: 'user',
-      content: message
+      content: message,
+      timestamp: new Date() // Add timestamp to user message
     };
     
     chatHistory.push(userMessage);
@@ -237,7 +251,8 @@ export const createEnhancedChatAgent = (
       // Add assistant message to chat history
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: streamingResponse
+        content: streamingResponse,
+        timestamp: new Date() // Add timestamp to assistant message
       };
       
       chatHistory.push(assistantMessage);
@@ -272,7 +287,8 @@ export const createEnhancedChatAgent = (
       // Create error response
       const errorResponse: ChatMessage = {
         role: 'assistant',
-        content: 'Sorry, I encountered an error while processing your request. Please try again later.'
+        content: 'Sorry, I encountered an error while processing your request. Please try again later.',
+        timestamp: new Date() // Add timestamp to error response
       };
       
       // Add error response to chat history

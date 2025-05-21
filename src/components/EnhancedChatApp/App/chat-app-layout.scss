@@ -1,0 +1,33 @@
+.chat-app-container {
+  position: absolute !important;
+  top: 117px !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: flex-start !important;
+  align-content: stretch !important;
+  align-items: stretch !important;
+  z-index: 10 !important;
+}
+
+/* Override for embedded mode */
+.site-context-embedded .chat-app-container {
+  top: 0 !important;
+}
+
+/* Ensure the side panel and map container take full height */
+.side-bar-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure map container takes full height and width */
+.map-container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}

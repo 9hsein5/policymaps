@@ -42,13 +42,7 @@ const ChatAppContainer: React.FC<Props> = ({
     const activeWebmap = useSelector(activeWebmapSelector);
     const hideSideBar = useSelector(hideSideBarSelectore);
 
-    // Local state for chat and document features
-    const [chatMessages, setChatMessages] = React.useState<any[]>([{
-        id: 'welcome-message',
-        text: 'Welcome to Policy Maps Chat! Ask questions about maps, data layers, or specific geographic areas.',
-        sender: 'system',
-        timestamp: new Date()
-    }]);
+    // Local state for document features only - removed chatMessages state
     const [uploadedDocuments, setUploadedDocuments] = React.useState<any[]>([]);
     const [activeTab, setActiveTab] = React.useState<number>(0);
 
@@ -80,26 +74,10 @@ const ChatAppContainer: React.FC<Props> = ({
     };
     
     const handleChatMessageSend = (message: string) => {
-        // Add message to local state
-        const newUserMessage = {
-            id: `user-${Date.now()}`,
-            text: message,
-            sender: 'user',
-            timestamp: new Date()
-        };
-        
-        setChatMessages(prev => [...prev, newUserMessage]);
-        
-        // In a real implementation, this would send the message to a backend service
-        // and handle the response. For now, we'll just acknowledge receipt.
-        setTimeout(() => {
-            setChatMessages(prev => [...prev, {
-                id: `system-${Date.now()}`,
-                text: 'Thank you for your message. This feature will be connected to a real chat service in the future.',
-                sender: 'system',
-                timestamp: new Date()
-            }]);
-        }, 1000);
+        // This function is now just a pass-through to ChatPanel
+        // ChatPanel will handle sending the message and updating Cosmos DB
+        console.log('Message received in container:', message);
+        // No local state updates here - all handled by ChatPanel
     };
     
     const handleDocumentUpload = (file: File) => {
@@ -133,7 +111,7 @@ const ChatAppContainer: React.FC<Props> = ({
             categorySchema={categorySchema}
             activeWebmap={activeWebmap}
             hideSideBar={hideSideBar}
-            chatMessages={chatMessages}
+            // Removed chatMessages prop to prevent override of Cosmos DB state
             uploadedDocuments={uploadedDocuments}
             activeTabIndex={activeTab}
             

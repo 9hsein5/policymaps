@@ -1,4 +1,4 @@
-import { CosmosClient } from "@azure/cosmos";
+import { CosmosClient, Container } from "@azure/cosmos";
 import { 
   AZURE_COSMOS_ENDPOINT, 
   AZURE_COSMOS_KEY, 
@@ -27,8 +27,37 @@ export const getDatabase = async () => {
 
 export const getContainer = async (containerId: string) => {
   const database = await getDatabase();
-  const { container } = await database.containers.createIfNotExists({ id: containerId });
+  const { container } = await database.containers.createIfNotExists({ 
+    id: containerId,
+    partitionKey: { paths: ["/sessionId"] } // Using sessionId as the partition key
+  });
   return container;
+};
+
+/**
+ * Get a document by ID using the correct partition key
+ * @param containerId Container ID
+ * @param documentId Document ID
+ * @param sessionId Session ID (partition key)
+ * @returns The document or null if not found
+ */
+export const getDocumentById = async (
+  containerId: string,
+  documentId: string,
+  sessionId: string
+) => {
+  try {
+    const container = await getContainer(containerId);
+    const { resource } = await container.item(documentId, sessionId).read();
+    return resource;
+  } catch (error: any) {
+    // Check if it's a "Not Found" error
+    if (error.code === 404) {
+      console.warn(`Document with ID ${documentId} not found in container ${containerId}`);
+      return null;
+    }
+    throw error;
+  }
 };
 
 // Export isCosmosDBConfigured to fix the import error

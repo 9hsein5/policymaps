@@ -1,4 +1,4 @@
-import { getContainer, isCosmosDBConfigured } from './client';
+import { getContainer, isCosmosDBConfigured, getDocumentById } from './client';
 import { ChatMessage } from '../azure-openai/chat';
 
 // Chat history container ID
@@ -13,6 +13,11 @@ export interface ChatHistoryRecord {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Debug utility function
+const debugLog = (message: string, data?: any) => {
+  console.log(`[ChatHistory Debug] ${message}`, data ? data : '');
+};
 
 /**
  * Save chat history to Cosmos DB
@@ -43,30 +48,54 @@ export const saveChatHistory = async (
       ]
     };
     
+    debugLog(`Checking for existing session: ${userId}/${sessionId}`);
     const { resources: existingRecords } = await container.items.query(querySpec).fetchAll();
     
     if (existingRecords.length > 0) {
       // Update existing record
       const existingRecord = existingRecords[0];
+      debugLog(`Updating existing session: ${existingRecord.id}`);
+      
+      // Ensure all messages have timestamps
+      const messagesWithTimestamps = messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp || new Date()
+      }));
+      
+      // IMPORTANT: Log the messages array length to debug replacement issue
+      debugLog(`Saving messages array with ${messagesWithTimestamps.length} messages`);
+      
       const updatedRecord: ChatHistoryRecord = {
         ...existingRecord,
-        messages,
+        messages: messagesWithTimestamps,
         updatedAt: new Date()
       };
       
-      const { resource } = await container.item(existingRecord.id).replace(updatedRecord);
+      // Use sessionId as the partition key when replacing the item
+      const { resource } = await container.item(existingRecord.id, sessionId).replace(updatedRecord);
+      debugLog(`Successfully updated session: ${resource?.id}`);
       return resource;
     } else {
       // Create new record
+      debugLog(`Creating new session for: ${userId}/${sessionId}`);
+      
+      // Ensure all messages have timestamps
+      const messagesWithTimestamps = messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp || new Date()
+      }));
+      
       const newRecord: ChatHistoryRecord = {
         userId,
         sessionId,
-        messages,
+        messages: messagesWithTimestamps,
         createdAt: new Date(),
         updatedAt: new Date()
       };
       
+      // Use sessionId as the partition key when creating the item
       const { resource } = await container.items.create(newRecord);
+      debugLog(`Successfully created new session: ${resource?.id}`);
       return resource;
     }
   } catch (error) {
@@ -76,7 +105,7 @@ export const saveChatHistory = async (
 };
 
 /**
- * Get chat history from Cosmos DB
+ * Get chat history from Cosmos DB with retry logic
  * @param userId User ID
  * @param sessionId Session ID
  * @returns The chat history record or null if not found
@@ -90,26 +119,139 @@ export const getChatHistory = async (
     return null;
   }
   
+  // Retry parameters
+  const maxRetries = 3;
+  let retryCount = 0;
+  let lastError: any = null;
+  
+  while (retryCount < maxRetries) {
+    try {
+      debugLog(`Getting chat history for: ${userId}/${sessionId} (attempt ${retryCount + 1})`);
+      const container = await getContainer(CHAT_HISTORY_CONTAINER);
+      
+      const querySpec = {
+        query: "SELECT * FROM c WHERE c.userId = @userId AND c.sessionId = @sessionId",
+        parameters: [
+          { name: "@userId", value: userId },
+          { name: "@sessionId", value: sessionId }
+        ]
+      };
+      
+      const { resources } = await container.items.query(querySpec).fetchAll();
+      
+      if (resources.length > 0) {
+        debugLog(`Found chat history: ${resources[0].id} with ${resources[0].messages?.length || 0} messages`);
+        
+        // Log the first few messages for debugging
+        if (resources[0].messages && resources[0].messages.length > 0) {
+          debugLog('First few messages:', resources[0].messages.slice(0, 3));
+        }
+        
+        return resources[0];
+      } else {
+        debugLog(`No chat history found for: ${userId}/${sessionId}`);
+        return null;
+      }
+    } catch (error) {
+      lastError = error;
+      retryCount++;
+      console.error(`Error getting chat history (attempt ${retryCount}):`, error);
+      
+      if (retryCount < maxRetries) {
+        // Exponential backoff
+        const backoffTime = 500 * Math.pow(2, retryCount);
+        debugLog(`Retrying in ${backoffTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoffTime));
+      }
+    }
+  }
+  
+  console.error(`Failed to get chat history after ${maxRetries} attempts:`, lastError);
+  return null;
+};
+
+/**
+ * Add a single message to chat history
+ * @param userId User ID
+ * @param sessionId Session ID
+ * @param message Chat message to add
+ * @returns The updated chat history record
+ */
+export const addMessageToChatHistory = async (
+  userId: string,
+  sessionId: string,
+  message: ChatMessage
+): Promise<ChatHistoryRecord | null> => {
+  if (!isCosmosDBConfigured()) {
+    console.warn('Azure Cosmos DB is not configured. Cannot add message to chat history.');
+    return null;
+  }
+  
   try {
-    const container = await getContainer(CHAT_HISTORY_CONTAINER);
+    // Get current history
+    const historyRecord = await getChatHistory(userId, sessionId);
     
-    const querySpec = {
-      query: "SELECT * FROM c WHERE c.userId = @userId AND c.sessionId = @sessionId",
-      parameters: [
-        { name: "@userId", value: userId },
-        { name: "@sessionId", value: sessionId }
-      ]
-    };
-    
-    const { resources } = await container.items.query(querySpec).fetchAll();
-    
-    if (resources.length > 0) {
-      return resources[0];
+    if (historyRecord) {
+      // Ensure message has timestamp
+      const messageWithTimestamp = {
+        ...message,
+        timestamp: message.timestamp || new Date()
+      };
+      
+      // Add message to existing messages array
+      const updatedMessages = [
+        ...historyRecord.messages,
+        messageWithTimestamp
+      ];
+      
+      debugLog(`Adding message to history. New total: ${updatedMessages.length} messages`);
+      
+      // Save updated history
+      return await saveChatHistory(userId, sessionId, updatedMessages);
     } else {
-      return null;
+      // Create new history if none exists
+      debugLog('Creating new chat history with initial message');
+      
+      const initialMessages: ChatMessage[] = [
+        {
+          role: 'system' as const,
+          content: 'You are a helpful assistant for the Policy Maps application, which provides access to curated maps and data layers about humanitarian and resilience-related facts.',
+          timestamp: new Date()
+        },
+        {
+          ...message,
+          timestamp: message.timestamp || new Date()
+        }
+      ];
+      
+      return await saveChatHistory(userId, sessionId, initialMessages);
     }
   } catch (error) {
-    console.error('Error getting chat history:', error);
+    console.error('Error adding message to chat history:', error);
+    return null;
+  }
+};
+
+/**
+ * Get chat history by document ID
+ * @param documentId Document ID
+ * @param sessionId Session ID (partition key)
+ * @returns The chat history record or null if not found
+ */
+export const getChatHistoryById = async (
+  documentId: string,
+  sessionId: string
+): Promise<ChatHistoryRecord | null> => {
+  if (!isCosmosDBConfigured()) {
+    console.warn('Azure Cosmos DB is not configured. Cannot retrieve chat history by ID.');
+    return null;
+  }
+  
+  try {
+    debugLog(`Getting chat history by ID: ${documentId}`);
+    return await getDocumentById(CHAT_HISTORY_CONTAINER, documentId, sessionId);
+  } catch (error) {
+    console.error('Error getting chat history by ID:', error);
     return null;
   }
 };
@@ -128,6 +270,7 @@ export const getUserChatSessions = async (
   }
   
   try {
+    debugLog(`Getting all chat sessions for user: ${userId}`);
     const container = await getContainer(CHAT_HISTORY_CONTAINER);
     
     const querySpec = {
@@ -138,6 +281,7 @@ export const getUserChatSessions = async (
     };
     
     const { resources } = await container.items.query(querySpec).fetchAll();
+    debugLog(`Found ${resources.length} sessions for user: ${userId}`);
     return resources;
   } catch (error) {
     console.error('Error getting user chat sessions:', error);
@@ -161,6 +305,7 @@ export const deleteChatSession = async (
   }
   
   try {
+    debugLog(`Deleting chat session: ${userId}/${sessionId}`);
     const container = await getContainer(CHAT_HISTORY_CONTAINER);
     
     const querySpec = {
@@ -174,9 +319,12 @@ export const deleteChatSession = async (
     const { resources } = await container.items.query(querySpec).fetchAll();
     
     if (resources.length > 0) {
-      await container.item(resources[0].id).delete();
+      // Use sessionId as the partition key when deleting the item
+      await container.item(resources[0].id, sessionId).delete();
+      debugLog(`Successfully deleted session: ${resources[0].id}`);
       return true;
     } else {
+      debugLog(`No session found to delete: ${userId}/${sessionId}`);
       return false;
     }
   } catch (error) {
