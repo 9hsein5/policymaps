@@ -9,7 +9,6 @@ import TopNav from '../../BrowseApp/TopNav';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import './style.scss';
-import './chat-app-layout.scss'; // Import the new layout styles
 
 import { 
     SearchWidget,
@@ -38,7 +37,6 @@ interface Props {
     categorySchema: IGroupCategory;
     activeWebmap?: any;
     hideSideBar?: boolean;
-    // Removed chatMessages prop to prevent override of Cosmos DB state
     uploadedDocuments?: any[];
     activeTabIndex?: number;
 
@@ -59,7 +57,6 @@ const ChatApp: React.FC<Props> = ({
     categorySchema,
     activeWebmap,
     hideSideBar = false,
-    // Removed chatMessages default value
     uploadedDocuments = [],
     activeTabIndex = 0,
 
@@ -113,9 +110,21 @@ const ChatApp: React.FC<Props> = ({
 
     return (
         <>
-            {/* Use the CSS class instead of inline styles */}
-            <div className={`chat-app-container ${isEmbedded ? 'site-context-embedded' : ''}`}>
-                {/* SideBar component doesn't accept 'hide' prop, it uses Redux state internally */}
+            {/* Use inline styles exactly like BrowseApp for consistent positioning */}
+            <div style={{
+                "position": "absolute",
+                "top": isEmbedded ? '0': "117px",
+                "left": "0",
+                "bottom": "0",
+                "width": "100%",
+                "display": "flex",
+                "flexDirection": "row",
+                "flexWrap": "nowrap",
+                "justifyContent": "flex-start",
+                "alignContent": "stretch",
+                "alignItems": "stretch",
+                "zIndex": "10"
+            }}>
                 <SideBar
                     scrollToBottomHandler={sidebarScrolledToEnd}
                 >
@@ -136,7 +145,6 @@ const ChatApp: React.FC<Props> = ({
                                 <ChatPanel 
                                     onChatMessageSend={handleChatMessageSend}
                                     scrollToBottomHandler={sidebarScrolledToEnd}
-                                    // Removed messages prop to allow ChatPanel to use its internal state
                                 />
                             </TabPanel>
                             
@@ -168,7 +176,6 @@ const ChatApp: React.FC<Props> = ({
                 }}>
                     <TopNav />
                     
-                    {/* Use MapViewWrapper instead of direct MapView for consistent behavior */}
                     <MapViewWrapper>
                         <SearchWidget />
                         <LegendWidget />
