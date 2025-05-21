@@ -5,8 +5,7 @@ import { createEnhancedChatAgent, EnhancedChatAgent } from '../services/chat-age
 import { SearchResult } from '../services/azure-search/search';
 import { 
   getChatHistory, 
-  saveChatHistory,
-  addMessageToChatHistory,
+  saveChatHistory, 
   ChatHistoryRecord 
 } from '../services/azure-cosmos/chat-history';
 import { isCosmosDBConfigured } from '../services/azure-cosmos/client';
@@ -189,7 +188,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         
         // Log the raw messages array for debugging
         debugLog('Raw messages array:', JSON.stringify(existingSession.messages, null, 2));
-        debugLog('Total messages in Cosmos DB:', existingSession.messages.length);
         
         // Create UI messages from the messages array
         const uiMessages: UIMessage[] = [];
@@ -209,7 +207,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           
           // Debug log each message
           debugLog('Processing message:', JSON.stringify(msg, null, 2));
-          debugLog(`Message role: ${msg.role}, content: ${msg.content?.substring(0, 50)}...`);
           
           try {
             // Create a new UI message with explicit type checking
@@ -231,8 +228,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
         // Only update if we have messages to display
         if (uiMessages.length > 0) {
           debugLog(`Setting ${uiMessages.length} local messages`);
-          // Sort messages by timestamp to ensure correct order
-          uiMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
           setLocalMessages(uiMessages);
           return true; // Successfully loaded history
         } else {
@@ -296,9 +291,33 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       // Save user message to Cosmos DB
       if (cosmosDbAvailable) {
         try {
-          // Use the new addMessageToChatHistory function to append the message
-          await addMessageToChatHistory(userId, sessionId, userChatMessage);
-          debugLog('User message appended to Cosmos DB');
+          // Get current history
+          const historyRecord = await getChatHistory(userId, sessionId);
+          
+          if (historyRecord) {
+            // Add user message to history
+            const updatedMessages = [
+              ...historyRecord.messages,
+              userChatMessage
+            ];
+            
+            debugLog('Saving updated messages to Cosmos DB:', updatedMessages);
+            
+            // Save updated history
+            await saveChatHistory(userId, sessionId, updatedMessages);
+          } else {
+            // Create new history if none exists
+            debugLog('Creating new chat history in Cosmos DB');
+            
+            await saveChatHistory(userId, sessionId, [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant for the Policy Maps application, which provides access to curated maps and data layers about humanitarian and resilience-related facts.',
+                timestamp: new Date()
+              },
+              userChatMessage
+            ]);
+          }
         } catch (err) {
           console.error('Error saving user message to Cosmos DB:', err);
           // Continue with local processing even if Cosmos DB save fails
@@ -368,67 +387,120 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
             // Save assistant response to Cosmos DB
             if (cosmosDbAvailable) {
               try {
-                // Create assistant ChatMessage
-                const assistantChatMessage: ChatMessage = {
-                  role: 'assistant',
-                  content: fullResponse || 'No response generated.',
-                  timestamp: new Date()
-                };
+                // Get current history
+                const historyRecord = await getChatHistory(userId, sessionId);
                 
-                // Use the new addMessageToChatHistory function to append the message
-                let retryCount = 0;
-                const maxRetries = 3;
-                
-                while (retryCount < maxRetries) {
-                  try {
-                    await addMessageToChatHistory(userId, sessionId, assistantChatMessage);
-                    debugLog('Assistant message appended to Cosmos DB');
-                    break; // Success, exit retry loop
-                  } catch (saveErr) {
-                    retryCount++;
-                    console.error(`Error saving assistant response to Cosmos DB (attempt ${retryCount}):`, saveErr);
+                if (historyRecord) {
+                  // Create assistant ChatMessage
+                  const assistantChatMessage: ChatMessage = {
+                    role: 'assistant',
+                    content: fullResponse || 'No response generated.',
+                    timestamp: new Date()
+                  };
+                  
+                  // Check if this exact message already exists to prevent duplicates
+                  const hasDuplicate = historyRecord.messages.some(
+                    msg => msg.role === 'assistant' && msg.content === fullResponse
+                  );
+                  
+                  if (!hasDuplicate) {
+                    // Add assistant message to history
+                    const updatedMessages = [
+                      ...historyRecord.messages,
+                      assistantChatMessage
+                    ];
                     
-                    if (retryCount >= maxRetries) {
-                      setError('Failed to save response to Cosmos DB after multiple attempts. Using local storage only.');
-                    } else {
-                      // Exponential backoff
-                      await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, retryCount)));
+                    debugLog('Saving assistant response to Cosmos DB:', assistantChatMessage);
+                    
+                    // Save updated history with retry logic
+                    let retryCount = 0;
+                    const maxRetries = 3;
+                    
+                    while (retryCount < maxRetries) {
+                      try {
+                        await saveChatHistory(userId, sessionId, updatedMessages);
+                        debugLog('Successfully saved assistant message to Cosmos DB');
+                        break; // Success, exit retry loop
+                      } catch (saveErr) {
+                        retryCount++;
+                        console.error(`Error saving assistant response to Cosmos DB (attempt ${retryCount}):`, saveErr);
+                        
+                        if (retryCount >= maxRetries) {
+                          setError('Failed to save response to Cosmos DB after multiple attempts. Using local storage only.');
+                        } else {
+                          // Exponential backoff
+                          await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, retryCount)));
+                        }
+                      }
                     }
+                  } else {
+                    debugLog('Skipping save to Cosmos DB - duplicate assistant message detected');
                   }
+                } else {
+                  // Create new history if none exists
+                  debugLog('Creating new chat history with assistant response');
+                  
+                  await saveChatHistory(userId, sessionId, [
+                    {
+                      role: 'system',
+                      content: 'You are a helpful assistant for the Policy Maps application, which provides access to curated maps and data layers about humanitarian and resilience-related facts.',
+                      timestamp: new Date()
+                    },
+                    {
+                      role: 'user',
+                      content: message,
+                      timestamp: new Date()
+                    },
+                    {
+                      role: 'assistant',
+                      content: fullResponse || 'No response generated.',
+                      timestamp: new Date()
+                    }
+                  ]);
                 }
               } catch (err) {
                 console.error('Error saving assistant response to Cosmos DB:', err);
                 setError('Failed to save response to Cosmos DB. Using local storage only.');
               }
             }
+            
+            // Reset loading state
+            setIsLoading(false);
+            
+            // Reset message input
+            setMessage('');
+            
+            // Scroll to bottom
+            if (scrollToBottomHandler) {
+              scrollToBottomHandler();
+            } else if (messagesEndRef.current) {
+              messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
           }
         );
-        
-        // Clear the input field
-        setMessage('');
       } catch (err) {
         console.error('Error sending message:', err);
-        setError('Failed to send message. Please try again.');
-        
-        // Remove the loading message
-        setLocalMessages(prev => prev.filter(msg => msg.role !== 'assistant' || msg.content !== 'Thinking...'));
-      } finally {
+        setError('Failed to send message. Please try again later.');
         setIsLoading(false);
+        
+        // Remove the loading message if it exists
+        setLocalMessages(prev => 
+          prev.filter(msg => msg.content !== 'Thinking...')
+        );
+        
+        // Add error message
+        setLocalMessages(prev => [
+          ...prev,
+          {
+            id: uuidv4(),
+            role: 'assistant',
+            content: 'Sorry, I encountered an error while processing your request. Please try again later.',
+            timestamp: new Date()
+          }
+        ]);
       }
     }
   };
-  
-  // Scroll to bottom when messages change
-  React.useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-    
-    // Call the scrollToBottomHandler if provided
-    if (scrollToBottomHandler) {
-      scrollToBottomHandler();
-    }
-  }, [displayMessages, scrollToBottomHandler]);
   
   // Handle Enter key press
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -438,89 +510,152 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   };
   
-  // Render loading state
-  if (isSessionLoading) {
-    return (
-      <div className="chat-panel">
-        <div className="chat-messages">
-          <div className="loading-message">
-            <p>Loading chat session...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Scroll to bottom when messages change
+  React.useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [displayMessages]);
   
-  // Render error state
-  if (error && !displayMessages.length) {
-    return (
-      <div className="chat-panel">
-        <div className="chat-messages">
-          <div className="error-message">
-            <p>{error}</p>
-            <button onClick={() => window.location.reload()}>Retry</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Create a new chat session
+  const handleNewSession = () => {
+    if (isLoading) return;
+    
+    // Generate new session ID
+    const newSessionId = uuidv4();
+    
+    // Save to local storage
+    localStorage.setItem(SESSION_ID_STORAGE_KEY, newSessionId);
+    
+    // Update state
+    setSessionId(newSessionId);
+    setLocalMessages([]);
+    setError(null);
+    setHasLoadedHistory(false);
+    
+    // Reset chat agent
+    if (chatAgent) {
+      chatAgent.clearChatHistory();
+    }
+    
+    debugLog('Created new chat session with ID:', newSessionId);
+  };
+  
+  // Retry loading history
+  const handleRetryLoadHistory = async () => {
+    if (isLoading || !sessionId) return;
+    
+    setIsSessionLoading(true);
+    setError(null);
+    
+    try {
+      const historyLoaded = await loadChatHistory();
+      if (!historyLoaded) {
+        addWelcomeMessage();
+      }
+    } catch (err) {
+      console.error('Error retrying history load:', err);
+      setError('Failed to load chat history. Please try again later.');
+      addWelcomeMessage();
+    } finally {
+      setIsSessionLoading(false);
+    }
+  };
   
   return (
     <div className="chat-panel">
-      <div className="chat-messages">
-        {displayMessages.map((msg) => {
-          // Debug log for message rendering
-          debugLog(`Rendering message: ${msg.role} - ${msg.content.substring(0, 20)}...`);
-          
-          return (
-            <div 
-              key={msg.id} 
-              className={`chat-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}
+      {/* Session info */}
+      <div className="chat-session-info">
+        <div className="session-details">
+          <span className="session-label">Session:</span>
+          <span className="session-id">{sessionId ? sessionId.substring(0, 8) : 'Loading...'}</span>
+          <span className={`session-status ${cosmosDbAvailable ? 'connected' : 'offline'}`}>
+            {cosmosDbAvailable ? 'Connected' : 'Offline'}
+          </span>
+        </div>
+        <div className="session-actions">
+          {error && (
+            <button 
+              className="retry-button" 
+              onClick={handleRetryLoadHistory}
+              disabled={isLoading || isSessionLoading}
             >
-              <div className="message-header">
-                <span className="message-sender">{msg.role === 'user' ? 'You' : 'Assistant'}</span>
-                <span className="message-time">
-                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <div className="message-content">
-                {msg.content}
-              </div>
-              {msg.references && msg.references.length > 0 && (
-                <div className="message-references">
-                  <h4>Related Items:</h4>
-                  <ul>
-                    {msg.references.map((ref, index) => (
-                      <li key={index}>
-                        <a href={`#item=${ref.id}`}>{ref.title}</a>
-                        {ref.snippet && <p>{ref.snippet}</p>}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              Retry
+            </button>
+          )}
+          <button 
+            className="new-session-button" 
+            onClick={handleNewSession}
+            disabled={isLoading || isSessionLoading}
+          >
+            New Session
+          </button>
+        </div>
+      </div>
+      
+      {/* Error banner */}
+      {error && (
+        <div className="chat-error-banner">
+          {error}
+        </div>
+      )}
+      
+      {/* Chat messages */}
+      <div className="chat-messages">
+        {isSessionLoading ? (
+          <div className="chat-loading">
+            <div className="loading-spinner"></div>
+            <div className="loading-text">Loading chat history...</div>
+          </div>
+        ) : displayMessages.length === 0 ? (
+          <div className="empty-chat">
+            <div className="empty-chat-message">
+              No messages yet. Start a conversation by typing a message below.
             </div>
-          );
-        })}
-        
-        {/* Error message display */}
-        {error && (
-          <div className="error-message">
-            <p>{error}</p>
           </div>
+        ) : (
+          displayMessages.map((msg) => {
+            // Debug log for each message being rendered
+            debugLog(`Rendering message: ${msg.role} - ${msg.content ? msg.content.substring(0, 50) : 'No content'}...`);
+            
+            return (
+              <div 
+                key={msg.id} 
+                className={`chat-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}
+              >
+                <div className="message-header">
+                  <div className="message-sender">
+                    {msg.role === 'user' ? 'You' : 'Assistant'}
+                  </div>
+                  <div className="message-time">
+                    {msg.timestamp.toLocaleTimeString()}
+                  </div>
+                </div>
+                <div className="message-content">
+                  {msg.content || 'No content available'}
+                </div>
+                {msg.references && msg.references.length > 0 && (
+                  <div className="message-references">
+                    <div className="references-header">Related Information:</div>
+                    <ul className="references-list">
+                      {msg.references.map((ref, index) => (
+                        <li key={ref.id} className="reference-item">
+                          <span className="reference-number">[{index + 1}]</span>
+                          <span className="reference-title">{ref.title}:</span>
+                          <span className="reference-snippet">{ref.snippet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
-        
-        {/* Loading indicator */}
-        {isLoading && !displayMessages.some(msg => msg.content === 'Thinking...') && (
-          <div className="loading-indicator">
-            <p>Loading...</p>
-          </div>
-        )}
-        
-        {/* Invisible element to scroll to */}
         <div ref={messagesEndRef} />
       </div>
       
+      {/* Chat input */}
       <div className="chat-input-container">
         <textarea
           className="chat-input"
@@ -528,17 +663,19 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           onChange={handleMessageChange}
           onKeyPress={handleKeyPress}
           placeholder="Type your message here..."
-          disabled={isLoading}
+          disabled={isLoading || isSessionLoading}
         />
         <div className="chat-actions">
-          <button 
-            className="send-button" 
+          <div className="chat-tip">
+            Press Enter to send, Shift+Enter for new line
+          </div>
+          <button
+            className={`send-button ${isLoading || isSessionLoading || !message.trim() ? 'disabled' : ''}`}
             onClick={handleSendMessage}
-            disabled={!message.trim() || isLoading}
+            disabled={isLoading || isSessionLoading || !message.trim()}
           >
-            Send
+            {isLoading ? 'Sending...' : 'Send'}
           </button>
-          <span className="chat-tip">Press Enter to send, Shift+Enter for new line</span>
         </div>
       </div>
     </div>
