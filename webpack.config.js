@@ -31,7 +31,6 @@ module.exports =  (env, options)=> {
         entry: {
             overview: path.resolve(__dirname, "./src/pages/Overview/OverviewPage.tsx"),
             browse: path.resolve(__dirname, "./src/pages/Browse/BrowsePage.tsx"),
-            chat: path.resolve(__dirname, "./src/pages/Chat/EnhancedChatPage.tsx"),
             issues: path.resolve(__dirname, "./src/pages/Issues/IssuesPage.tsx"),
             resources: path.resolve(__dirname, "./src/pages/Resources/ResourcesPage.tsx"),
         },
@@ -178,30 +177,6 @@ module.exports =  (env, options)=> {
                 title: `Explore | ${SiteTitle}`,
                 meta: {
                     description: 'Search, filter and download datasets powering Lebanese Red Cross operations and community resilience programmes'
-                },
-                minify: {
-                    html5                          : true,
-                    collapseWhitespace             : true,
-                    minifyCSS                      : true,
-                    minifyJS                       : true,
-                    minifyURLs                     : false,
-                    removeComments                 : true,
-                    removeEmptyAttributes          : true,
-                    removeOptionalTags             : true,
-                    removeRedundantAttributes      : true,
-                    removeScriptTypeAttributes     : true,
-                    removeStyleLinkTypeAttributese : true,
-                    useShortDoctype                : true
-                }
-            }),
-            new HtmlWebpackPlugin({
-                template: path.resolve(__dirname, './src/layouts/site.layout.html'),
-                inject: true,
-                filename: './chat/index.html',
-                chunks: ['chat'],
-                title: `Chat | ${SiteTitle}`,
-                meta: {
-                    description: 'Chat is a tool that helps you visualize and analyze chat data on a map. It allows you to explore the spatial distribution of chat messages and identify patterns and trends in the data.'
                 },
                 minify: {
                     html5                          : true,

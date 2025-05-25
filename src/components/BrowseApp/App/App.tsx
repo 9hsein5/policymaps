@@ -11,6 +11,7 @@ import CategoryFilter, { SelectedCategory } from '../CategoryFilter';
 import MyCollection from '../MyCollection/MyCollection';
 import MapView from '../MapView/MapViewContainer';
 import WarningMessage from '../WarningMessage'
+import SmartSearch from '../SmartSearch';
 
 import { 
     SearchWidget,
@@ -22,10 +23,6 @@ import {
     Tier
 } from '../../../AppConfig';
 
-// import {
-//     UIConfig
-// } from '../Config';
-
 import {
     AgolItem
 } from '../../../utils/arcgis-online-item-formatter';
@@ -34,10 +31,6 @@ import AddCollectionToMyFav from '../AddCollectionToMyFavDialog/AddCollectionToM
 import { useSelector } from 'react-redux';
 import { selectShowAddCollections2MyFavDialog } from '../../../store/browseApp/reducers/UI';
 import Alert from '../Alert/AlertContainer';
-
-// import { 
-//     CategorySchemaDataItem
-// } from '../../../utils/category-schema-manager';
 
 interface Props {
     // this site can also be embbeded in an iframe with search and search results hide if the "disableSearch" hash param is true
@@ -64,6 +57,7 @@ const BrowseApp:React.FC<Props>= ({
 
     const { isEmbedded } = React.useContext(SiteContext);
     const [ isCategoryFilterVisible, setIsCategoryFilterVisible ] = React.useState<boolean>(true);
+    const [ isSmartSearchMode, setIsSmartSearchMode ] = React.useState<boolean>(true);
 
     const showAddCollections2MyFavDialog = useSelector(selectShowAddCollections2MyFavDialog)
 
@@ -71,11 +65,49 @@ const BrowseApp:React.FC<Props>= ({
         setIsCategoryFilterVisible(!isCategoryFilterVisible);
     };
 
+    const toggleSearchMode = () => {
+        setIsSmartSearchMode(!isSmartSearchMode);
+    };
+
     const getFilters = ()=>{
         if(disableSearch){
             return null;
         }
 
+        // Toggle button for switching between smart search and traditional search
+        const searchModeToggle = (
+            <div className="search-mode-toggle text-right padding-right-1 padding-bottom-quarter">
+                <button 
+                    className="btn btn-transparent btn-small" 
+                    onClick={toggleSearchMode}
+                >
+                    Switch to {isSmartSearchMode ? 'Traditional' : 'Smart'} Search
+                </button>
+            </div>
+        );
+
+        // Smart search implementation
+        if (isSmartSearchMode) {
+            return (
+                <div className='trailer-half'>
+                    {searchModeToggle}
+                    <SmartSearch />
+                    
+                    <div
+                        style={{
+                            'display': isCategoryFilterVisible ? 'block' : 'none'
+                        }}
+                    >
+                        <CategoryFilter 
+                            categorySchema={categorySchema}
+                            onChange={categoryFilterOnChange}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
+        // Traditional search implementation
         const searchAutoComplete = (
             <div
                 style={{
@@ -135,6 +167,7 @@ const BrowseApp:React.FC<Props>= ({
 
         return (
             <div className='trailer-half'>
+                {searchModeToggle}
                 { searchAutoComplete }
                 { categoryFilter }
             </div>

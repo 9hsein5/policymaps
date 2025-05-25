@@ -46,10 +46,6 @@ const PageLayout: React.FC<Props> = ({
                 path: '../browse/',
             },
             {
-                label: 'Chat',
-                path: '../chat/',
-            },
-            {
                 label: 'Issues',
                 path: '../issues/',
             },
