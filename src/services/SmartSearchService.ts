@@ -1,45 +1,116 @@
+import { 
+  enhancedSmartSearch, 
+  processDocumentContent, 
+  SearchContext, 
+  EnhancedSmartSearchParams 
+} from './azure-openai/chat';
+
+/**
+ * Enhanced Smart Search Service
+ * Provides advanced natural language processing for search queries using Azure OpenAI
+ */
 export class SmartSearchService {
-  // Process natural language query into structured search parameters
-  processNaturalLanguageQuery(query: string) {
-    // Extract location information
-    const locationMatch = query.match(/near|in|around|at\s+([a-zA-Z\s,]+)/i);
-    const location = locationMatch ? locationMatch[1].trim() : null;
-    
-    // Extract category information
-    const categoryMatches = [
-      { pattern: /health|healthcare|hospital|clinic/i, category: 'Health' },
-      { pattern: /education|school|university|college/i, category: 'Education' },
-      { pattern: /housing|home|apartment|residence/i, category: 'Housing' },
-      { pattern: /economic|business|job|employment/i, category: 'Economic Opportunity' },
-      { pattern: /population|demographic|people/i, category: 'Population' }
-    ];
-    
-    const categories = categoryMatches
-      .filter(match => match.pattern.test(query))
-      .map(match => match.category);
-    
-    // Extract time-based filters
-    const timeMatch = query.match(/from\s+(\d{4})|since\s+(\d{4})|before\s+(\d{4})|after\s+(\d{4})/i);
-    const timeFilter = timeMatch ? timeMatch[0] : null;
-    
-    return {
-      originalQuery: query,
-      location,
-      categories,
-      timeFilter,
-      // Clean query with entities removed for keyword search
-      cleanQuery: this.cleanQuery(query)
-    };
+  private searchContext: SearchContext | undefined;
+  
+  /**
+   * Constructor
+   * @param conversationId Optional conversation ID for context tracking
+   */
+  constructor(conversationId?: string) {
+    if (conversationId) {
+      this.searchContext = {
+        previousQueries: [],
+        currentLocation: null,
+        currentCategories: [],
+        currentTimeFilter: null,
+        conversationId
+      };
+    }
   }
   
-  private cleanQuery(query: string): string {
-    // Remove location phrases
-    let clean = query.replace(/near|in|around|at\s+([a-zA-Z\s,]+)/i, '');
+  /**
+   * Process a natural language query with context awareness
+   * @param query The user's natural language query
+   * @returns Enhanced search parameters
+   */
+  async processNaturalLanguageQuery(query: string): Promise<EnhancedSmartSearchParams> {
+    // Process the query using Azure OpenAI with context if available
+    const result = await enhancedSmartSearch(query, this.searchContext);
     
-    // Remove time phrases
-    clean = clean.replace(/from\s+(\d{4})|since\s+(\d{4})|before\s+(\d{4})|after\s+(\d{4})/i, '');
+    // Update context if available
+    if (this.searchContext) {
+      this.searchContext.previousQueries.push(query);
+      
+      // Only keep the last 5 queries for context
+      if (this.searchContext.previousQueries.length > 5) {
+        this.searchContext.previousQueries.shift();
+      }
+      
+      // Update current context values if they were extracted
+      if (result.location) {
+        this.searchContext.currentLocation = result.location;
+      }
+      
+      if (result.categories && result.categories.length > 0) {
+        this.searchContext.currentCategories = result.categories;
+      }
+      
+      if (result.timeFilter) {
+        this.searchContext.currentTimeFilter = result.timeFilter;
+      }
+    }
     
-    // Trim and normalize whitespace
-    return clean.replace(/\s+/g, ' ').trim();
+    return result;
+  }
+  
+  /**
+   * Process uploaded document content
+   * @param content Document content as string
+   * @param documentType Type of document (e.g., 'text', 'geojson', 'csv')
+   * @returns Processed document information
+   */
+  async processDocumentContent(
+    content: string,
+    documentType: 'text' | 'geojson' | 'csv' | 'pdf' | string
+  ): Promise<{
+    keywords: string[];
+    locations: string[];
+    categories: string[];
+    timeReferences: string[];
+    geoEntities?: any;
+    summary: string;
+  }> {
+    return processDocumentContent(content, documentType);
+  }
+  
+  /**
+   * Reset the search context
+   */
+  resetContext(): void {
+    if (this.searchContext) {
+      this.searchContext.previousQueries = [];
+      this.searchContext.currentLocation = null;
+      this.searchContext.currentCategories = [];
+      this.searchContext.currentTimeFilter = null;
+    }
+  }
+  
+  /**
+   * Get the current search context
+   * @returns The current search context or undefined if not using context
+   */
+  getContext(): SearchContext | undefined {
+    return this.searchContext;
+  }
+  
+  /**
+   * Set a specific search context
+   * @param context The search context to set
+   */
+  setContext(context: SearchContext): void {
+    this.searchContext = context;
   }
 }
+
+// Export a singleton instance for app-wide use
+export const smartSearchService = new SmartSearchService();

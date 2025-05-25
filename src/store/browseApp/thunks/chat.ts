@@ -25,7 +25,7 @@ export const sendChatMessage = createAsyncThunk(
       // Process the message with smart search if it's text
       if (message.text) {
         const searchService = new SmartSearchService();
-        const searchParams = searchService.processNaturalLanguageQuery(message.text);
+        const searchParams = await searchService.processNaturalLanguageQuery(message.text);
         
         // Dispatch search by term
         if (searchParams.cleanQuery) {

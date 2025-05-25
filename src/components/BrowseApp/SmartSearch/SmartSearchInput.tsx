@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SmartSearchService } from '../../../services/SmartSearchService';
+import { smartSearchService } from '../../../services/SmartSearchService';
 
 interface Props {
   onSearch: (params: any) => void;
@@ -12,13 +12,21 @@ const SmartSearchInput: React.FC<Props> = ({
 }) => {
   const [query, setQuery] = React.useState<string>('');
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
-  const searchService = new SmartSearchService();
+  const [isSearching, setIsSearching] = React.useState<boolean>(false);
   
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!query.trim()) return;
     
-    const searchParams = searchService.processNaturalLanguageQuery(query);
-    onSearch(searchParams);
+    setIsSearching(true);
+    try {
+      // Use the enhanced smart search service with Azure OpenAI
+      const searchParams = await smartSearchService.processNaturalLanguageQuery(query);
+      onSearch(searchParams);
+    } catch (error) {
+      console.error('Error processing search query:', error);
+    } finally {
+      setIsSearching(false);
+    }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -38,23 +46,30 @@ const SmartSearchInput: React.FC<Props> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           onFocus={() => setIsExpanded(true)}
+          disabled={isSearching}
         />
         <button 
           className="smart-search-button" 
           onClick={handleSearch}
           aria-label="Search"
+          disabled={isSearching}
         >
-          <span className="icon-ui-search"></span>
+          {isSearching ? (
+            <span className="icon-ui-loading-indicator"></span>
+          ) : (
+            <span className="icon-ui-search"></span>
+          )}
         </button>
       </div>
       
       {isExpanded && (
         <div className="smart-search-helper">
-          <p className="font-size--3">Try queries like:</p>
+          <p className="font-size--3">Try advanced queries like:</p>
           <ul className="font-size--3">
-            <li>"healthcare facilities in Chicago"</li>
-            <li>"education data from 2020"</li>
-            <li>"housing affordability near coastal areas"</li>
+            <li>"healthcare facilities in Chicago with pediatric services"</li>
+            <li>"education data from 2020 showing achievement gaps"</li>
+            <li>"affordable housing near public transit in coastal areas"</li>
+            <li>"economic opportunities within 5 miles of downtown Seattle"</li>
           </ul>
           <button 
             className="btn btn-small btn-transparent"

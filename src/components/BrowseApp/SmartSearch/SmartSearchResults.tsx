@@ -1,75 +1,125 @@
 import * as React from 'react';
-
-interface SearchParams {
-  originalQuery: string;
-  location: string | null;
-  categories: string[];
-  timeFilter: string | null;
-  cleanQuery: string;
-}
+import { EnhancedSmartSearchParams } from '../../../services/azure-openai/chat';
 
 interface Props {
-  searchParams: SearchParams | null;
-  onClearFilter: (filterType: string, value: string) => void;
+  searchParams: EnhancedSmartSearchParams | null;
+  onClearFilter: (filterType: 'query' | 'location' | 'category' | 'subcategory' | 'time', value: any) => void;
+  isProcessing?: boolean;
 }
 
 const SmartSearchResults: React.FC<Props> = ({
   searchParams,
-  onClearFilter
+  onClearFilter,
+  isProcessing = false
 }) => {
-  if (!searchParams) return null;
+  if (!searchParams) {
+    return null;
+  }
+  
+  const hasActiveFilters = 
+    (searchParams.cleanQuery && searchParams.cleanQuery.length > 0) ||
+    (searchParams.location) ||
+    (searchParams.categories && searchParams.categories.length > 0) ||
+    (searchParams.subcategories && searchParams.subcategories.length > 0) ||
+    (searchParams.timeFilter);
+  
+  if (!hasActiveFilters) {
+    return null;
+  }
   
   return (
-    <div className="smart-search-results padding-leader-half padding-trailer-half">
-      <div className="font-size--2 avenir-demi">Search interpretation:</div>
-      
+    <div className="smart-search-results">
       <div className="smart-search-filters">
-        {searchParams.cleanQuery && (
-          <span className="smart-search-filter">
-            Keywords: {searchParams.cleanQuery}
-            <button 
-              className="smart-search-filter-remove" 
-              onClick={() => onClearFilter('query', searchParams.cleanQuery)}
-            >
-              ×
-            </button>
-          </span>
+        <h4 className="font-size--1">Active Filters:</h4>
+        
+        {isProcessing && (
+          <div className="smart-search-processing">
+            <span className="icon-ui-loading-indicator"></span>
+            <span>Processing search...</span>
+          </div>
         )}
         
-        {searchParams.location && (
-          <span className="smart-search-filter">
-            Location: {searchParams.location}
-            <button 
-              className="smart-search-filter-remove" 
-              onClick={() => onClearFilter('location', searchParams.location)}
-            >
-              ×
-            </button>
-          </span>
+        <div className="smart-search-filter-chips">
+          {searchParams.cleanQuery && (
+            <div className="filter-chip">
+              <span>Query: {searchParams.cleanQuery}</span>
+              <button 
+                className="filter-chip-remove" 
+                onClick={() => onClearFilter('query', searchParams.cleanQuery)}
+                aria-label="Remove query filter"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
+          {searchParams.location && (
+            <div className="filter-chip">
+              <span>Location: {searchParams.location}</span>
+              <button 
+                className="filter-chip-remove" 
+                onClick={() => onClearFilter('location', searchParams.location)}
+                aria-label="Remove location filter"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
+          {searchParams.categories && searchParams.categories.map((category, index) => (
+            <div className="filter-chip" key={`category-${index}`}>
+              <span>Category: {category}</span>
+              <button 
+                className="filter-chip-remove" 
+                onClick={() => onClearFilter('category', category)}
+                aria-label={`Remove ${category} category filter`}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          
+          {searchParams.subcategories && searchParams.subcategories.map((subcategory, index) => (
+            <div className="filter-chip" key={`subcategory-${index}`}>
+              <span>Subcategory: {subcategory}</span>
+              <button 
+                className="filter-chip-remove" 
+                onClick={() => onClearFilter('subcategory', subcategory)}
+                aria-label={`Remove ${subcategory} subcategory filter`}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          
+          {searchParams.timeFilter && (
+            <div className="filter-chip">
+              <span>Time: {searchParams.timeFilter}</span>
+              <button 
+                className="filter-chip-remove" 
+                onClick={() => onClearFilter('time', searchParams.timeFilter)}
+                aria-label="Remove time filter"
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {searchParams.confidence && searchParams.confidence > 0 && (
+          <div className="smart-search-confidence">
+            <span className="font-size--3">
+              Confidence: {Math.round(searchParams.confidence * 100)}%
+            </span>
+          </div>
         )}
         
-        {searchParams.categories.map(category => (
-          <span key={category} className="smart-search-filter">
-            Category: {category}
-            <button 
-              className="smart-search-filter-remove" 
-              onClick={() => onClearFilter('category', category)}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        
-        {searchParams.timeFilter && (
-          <span className="smart-search-filter">
-            Time: {searchParams.timeFilter}
-            <button 
-              className="smart-search-filter-remove" 
-              onClick={() => onClearFilter('time', searchParams.timeFilter)}
-            >
-              ×
-            </button>
-          </span>
+        {searchParams.spatialRelationships && searchParams.spatialRelationships.length > 0 && (
+          <div className="smart-search-spatial">
+            <span className="font-size--3">
+              Spatial context: {searchParams.spatialRelationships.join(', ')}
+            </span>
+          </div>
         )}
       </div>
     </div>
