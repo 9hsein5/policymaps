@@ -6,6 +6,8 @@ import { searchByTerm, searchByCategorySchema } from '../../../store/browseApp/r
 import { setCenterLocation } from '../../../store/browseApp/reducers/map';
 import { geocodeLocation } from '../../../services/GeocodingService';
 import { EnhancedSmartSearchParams } from '../../../services/azure-openai/chat';
+import { smartSearchService } from '../../../services/SmartSearchService';
+import { SiteContext } from '../../../contexts/SiteContextProvider';
 
 interface Props {
   onSearchComplete?: () => void;
@@ -17,7 +19,31 @@ const SmartSearchContainer: React.FC<Props> = ({
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = React.useState<EnhancedSmartSearchParams | null>(null);
   const [isProcessing, setIsProcessing] = React.useState<boolean>(false);
-  
+  const siteContext = React.useContext(SiteContext);
+  const { esriOAuthUtils } = siteContext;
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (esriOAuthUtils) {
+      const init = async () => {
+        try {
+          const { credential } = await esriOAuthUtils.init();
+          const { token } = credential;
+
+          console.log('Initializing Smart Search with token:', token);
+                    
+          // Set token in smart search service
+          smartSearchService.setToken(token);
+        } catch (error) {
+          console.error('Error initializing services:', error);
+          setError('Failed to initialize search services. Please try again later.');
+        }
+      };
+      
+      init();
+    }
+  }, [esriOAuthUtils]);
+
   const handleSearch = async (params: EnhancedSmartSearchParams) => {
     setSearchParams(params);
     setIsProcessing(true);

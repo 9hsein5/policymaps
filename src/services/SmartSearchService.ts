@@ -4,6 +4,7 @@ import {
   SearchContext, 
   EnhancedSmartSearchParams 
 } from './azure-openai/chat';
+import EsriOAuth from '../utils/Esri-OAuth';
 
 /**
  * Enhanced Smart Search Service
@@ -11,12 +12,23 @@ import {
  */
 export class SmartSearchService {
   private searchContext: SearchContext | undefined;
-  
+  private esriOAuthUtils: EsriOAuth | undefined;
+  private token: string | undefined;
   /**
    * Constructor
+   * @param esriOAuthUtilsOrToken EsriOAuth instance or token string
    * @param conversationId Optional conversation ID for context tracking
    */
-  constructor(conversationId?: string) {
+  constructor(esriOAuthUtilsOrToken?: EsriOAuth | string, conversationId?: string) {
+    // Handle different authentication scenarios
+    if (typeof esriOAuthUtilsOrToken === 'string') {
+      // Direct token string provided
+      this.token = esriOAuthUtilsOrToken;
+    } else if (esriOAuthUtilsOrToken instanceof EsriOAuth) {
+      // EsriOAuth instance provided
+      this.esriOAuthUtils = esriOAuthUtilsOrToken;
+    }
+
     if (conversationId) {
       this.searchContext = {
         previousQueries: [],
@@ -109,6 +121,24 @@ export class SmartSearchService {
    */
   setContext(context: SearchContext): void {
     this.searchContext = context;
+  }
+
+  /**
+   * Set the EsriOAuth instance
+   * @param esriOAuthUtils EsriOAuth instance
+   */
+  setEsriOAuthUtils(esriOAuthUtils: EsriOAuth): void {
+    this.esriOAuthUtils = esriOAuthUtils;
+    this.token = undefined; // Clear token when setting EsriOAuth
+  }
+  
+  /**
+   * Set the authentication token directly
+   * @param token Authentication token
+   */
+  setToken(token: string): void {
+    this.token = token;
+    this.esriOAuthUtils = undefined; // Clear EsriOAuth when setting token
   }
 }
 

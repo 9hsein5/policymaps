@@ -6,6 +6,7 @@ import IPortal from 'esri/portal/Portal';
 import ICredential from 'esri/identity/Credential';
 import IPortalUser from 'esri/portal/PortalUser';
 import { saveBrowseAppHashParamsToLocalStorage } from '../url-manager/BrowseAppUrlManager';
+import { UserSession } from '@esri/arcgis-rest-auth';
 
 interface Props {
     appId: string;
@@ -141,5 +142,86 @@ export default class OAuthUtils {
         const { urlKey, url, customBaseUrl } = this.userPortal;
     
         return urlKey ? `https://${urlKey}.${customBaseUrl}` : `${url}`;
+    }
+
+    /**
+     * Get authentication parameters for REST API calls
+     * @returns Object with authentication parameters
+     */
+    async getAuthParams(): Promise<Record<string, string>> {
+        try {
+            const { credential } = await this.init();
+            
+            if (!credential || !credential.token) {
+                return { f: 'json' };
+            }
+            
+            return {
+                token: credential.token,
+                f: 'json'
+            };
+        } catch (error) {
+            console.error('Error getting auth params:', error);
+            return { f: 'json' };
+        }
+    }
+
+    /**
+     * Get token string
+     * @returns Token string or undefined if not authenticated
+     */
+    async getToken(): Promise<string | undefined> {
+        try {
+            const { credential } = await this.init();
+            return credential?.token;
+        } catch (error) {
+            console.error('Error getting token:', error);
+            return undefined;
+        }
+    }
+
+    /**
+     * Get authentication session for ArcGIS REST JS
+     * @returns UserSession or null if not authenticated
+     */
+    async getAuthSession(): Promise<UserSession | null> {
+        try {
+            const { credential } = await this.init();
+            
+            if (!credential || !credential.token) {
+                return null;
+            }
+            
+            return new UserSession({ token: credential.token });
+        } catch (error) {
+            console.error('Error getting authentication session:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Check if user is authenticated
+     * @returns Boolean indicating if user is authenticated
+     */
+    async isAuthenticated(): Promise<boolean> {
+        try {
+            const { credential } = await this.init();
+            return !!credential?.token;
+        } catch (error) {
+            console.error('Error checking authentication status:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Create authenticated axios request config
+     * @returns Axios request config with authentication
+     */
+    async createAuthRequestConfig() {
+        const params = await this.getAuthParams();
+        
+        return {
+            params
+        };
     }
 }
