@@ -11,7 +11,6 @@ import CategoryFilter, { SelectedCategory } from '../CategoryFilter';
 import MyCollection from '../MyCollection/MyCollection';
 import MapView from '../MapView/MapViewContainer';
 import WarningMessage from '../WarningMessage'
-import SmartSearch from '../SmartSearch';
 
 import { 
     SearchWidget,
@@ -74,39 +73,6 @@ const BrowseApp:React.FC<Props>= ({
             return null;
         }
 
-        // Toggle button for switching between smart search and traditional search
-        const searchModeToggle = (
-            <div className="search-mode-toggle text-right padding-right-1 padding-bottom-quarter">
-                <button 
-                    className="btn btn-transparent btn-small" 
-                    onClick={toggleSearchMode}
-                >
-                    Switch to {isSmartSearchMode ? 'Traditional' : 'Smart'} Search
-                </button>
-            </div>
-        );
-
-        // Smart search implementation
-        if (isSmartSearchMode) {
-            return (
-                <div className='trailer-half'>
-                    {searchModeToggle}
-                    <SmartSearch />
-                    
-                    <div
-                        style={{
-                            'display': isCategoryFilterVisible ? 'block' : 'none'
-                        }}
-                    >
-                        <CategoryFilter 
-                            categorySchema={categorySchema}
-                            onChange={categoryFilterOnChange}
-                        />
-                    </div>
-                </div>
-            );
-        }
-
         // Traditional search implementation
         const searchAutoComplete = (
             <div
@@ -167,7 +133,6 @@ const BrowseApp:React.FC<Props>= ({
 
         return (
             <div className='trailer-half'>
-                {searchModeToggle}
                 { searchAutoComplete }
                 { categoryFilter }
             </div>

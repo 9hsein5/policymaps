@@ -5,8 +5,6 @@ import myFavItemsReducer from './myFavItems';
 import mapReducer from './map';
 import uiReducer from './UI';
 import groupContent from './groupContent'
-import chatReducer from './chat';
-import searchReducer from './search';
 
 const entities = combineReducers({
     itemCollection: itemCollectionsReducer,
@@ -18,6 +16,4 @@ export default combineReducers({
     map: mapReducer,
     ui: uiReducer,
     groupContent,
-    chat: chatReducer,
-    search: searchReducer
 });
